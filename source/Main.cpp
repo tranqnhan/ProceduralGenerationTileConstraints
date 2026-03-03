@@ -1,3 +1,4 @@
+#include "Generator.hpp"
 #include "raylib.h"
 
 #include "Analyzer.hpp"
@@ -7,6 +8,9 @@
 #define WINDOW_N "Procedural Generation Constraint Satisfaction"
 
 Analyzer sampleAnalyzer;
+Generator generator;
+
+Texture2D generatedTexture;
 
 // Main loop initialization
 void Init() {
@@ -16,9 +20,11 @@ void Init() {
 
     Ruleset ruleset = sampleAnalyzer.AnalyzeImage("../assets/sample1.png");
 
-    for (int i = 0; i < ruleset.GetNumberOfObjects(); ++i) {
-        const uint32_t value = ruleset.GetConstraints(i);
-    }
+
+    Image generatedImage = generator.GenerateImage(ruleset, 100, 100);
+    UnloadImage(generatedImage);
+
+    generatedTexture = LoadTextureFromImage(generatedImage);
 }
 
 
@@ -42,13 +48,14 @@ void Render() {
     DrawFPS(0, 0);
 
     // Draw
+    DrawTexture(generatedTexture, 0, 0, WHITE);
 
     EndDrawing();
 }
 
 
 void OnClose() {
-
+    UnloadTexture(generatedTexture);
 }
 
 // Main loop

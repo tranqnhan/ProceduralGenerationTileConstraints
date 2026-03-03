@@ -13,6 +13,7 @@ public:
     Ruleset();
 
     void AddColor(const Color& color);
+    Color GetColor(int id) const; 
     void AddConstraint(int id, int other);
     uint32_t GetConstraints(int id) const;
     int GetNumberOfObjects() const;

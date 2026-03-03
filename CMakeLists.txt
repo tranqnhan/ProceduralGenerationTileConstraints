@@ -21,5 +21,6 @@ target_compile_options(ProceduralGenerationConstraintSatisfaction PRIVATE -O2)
 target_sources(ProceduralGenerationConstraintSatisfaction PRIVATE
     source/algorithm/Ruleset.cpp
     source/algorithm/Analyzer.cpp
+    source/algorithm/Generator.cpp
     source/Main.cpp
 )

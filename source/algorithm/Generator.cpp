@@ -1,5 +1,3 @@
-#pragma once
-
 #include <cstdint>
 #include <bit>
 #include <vector>
@@ -7,32 +5,8 @@
 #include "raylib.h"
 
 #include "Ruleset.hpp"
+#include "Generator.hpp"
 
-
-class Generator {
-public:
-    Generator();
-    Image GenerateImage(const Ruleset& rule, int width, int height);
-
-    // prng with xorshift from low to high inclusive
-    int RandomInteger(int lower, int upper) {
-        randomState ^= randomState << 13;
-        randomState ^= randomState >> 17;
-        randomState ^= randomState << 5;
-
-        return lower + randomState % (upper - lower + 1);
-    }
-
-
-private:
-    uint32_t randomState;
-
-    int GetEntropy(uint32_t constraints) const;
-    uint32_t AddConstraints(uint32_t oldContraints, uint32_t newConstraints) const;
-    uint32_t ResolveContraints(uint32_t contraints); // Reduce contraints to 1 solution
-
-    bool Contains(const std::vector<int>& openSet, int value); // TODO: only temporary. remove this for heap
-};
 
 Generator::Generator() {
     randomState = 12345; //std::time(0);
@@ -78,6 +52,7 @@ uint32_t Generator::ResolveContraints(uint32_t contraints) {
 
 
 Image Generator::GenerateImage(const Ruleset& rules, int width, int height) {
+    
     std::vector<int> openSet; // stores index of next cells to solve
     
     std::vector<bool> explored(width * height, false);
@@ -87,11 +62,15 @@ Image Generator::GenerateImage(const Ruleset& rules, int width, int height) {
 
     openSet.emplace_back(startingPoint);
 
+    // Constraint satisfaction
     while (!openSet.empty()) {
         const int cellIndex = openSet.back();
         openSet.pop_back();
 
         constraints[cellIndex] = ResolveContraints(constraints[cellIndex]);
+        
+        if (constraints[cellIndex] == 0) continue;
+
         const int type = std::countr_zero(constraints[cellIndex]);
         explored[cellIndex] = true;
 
@@ -115,11 +94,21 @@ Image Generator::GenerateImage(const Ruleset& rules, int width, int height) {
                 }
             }
         }
-
     }
 
-    Image generateImage = GenImageColor(width, height, WHITE);
-    // TODO: Generate image
+
+    // Generate image
+    Image generateImage = GenImageColor(width, height, BLACK);
+
+    for (int i = 0; i < width * height; ++i) {
+        if (!explored[i]) continue;
+        const int type = std::countr_zero(constraints[i]);
+        const int posX = i % width;
+        const int posY = i / height;
+        
+        ImageDrawPixel(&generateImage, posX, posY, rules.GetColor(type));
+    }
+
 
     return generateImage;
 

@@ -21,3 +21,8 @@ uint32_t Ruleset::GetConstraints(int id) const {
 int Ruleset::GetNumberOfObjects() const {
     return numObjects;
 }
+
+Color Ruleset::GetColor(int id) const {
+    if (id >= numObjects) return colors[0];
+    return colors[id];
+} 
