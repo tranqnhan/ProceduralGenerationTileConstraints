@@ -10,11 +10,15 @@
 
 class Analyzer {
 public:
-    Ruleset AnalyzeImage(const std::string& imageFile);
+    void AnalyzeImage(const std::string& imageFile, int expand);
+
+    Image debugImage;
+    Texture2D debugTexture;
 
 private:
+    int GetModulusSpaceCoord(int coord, int maxCoord) const;
+    void AddKernelComposite(int x, int y, int width, int height, int length, Color *colors, std::vector<Color>& composites);
 
-    int GetColorID(const Color& color, Ruleset& ruleset, std::unordered_map<uint32_t, int>& colorMap);
-
+    void DebugGenerateTexture(const std::vector<Color> composites, int length);
 };
 

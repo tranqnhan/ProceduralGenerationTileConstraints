@@ -1,4 +1,3 @@
-#include "Generator.hpp"
 #include "raylib.h"
 
 #include "Analyzer.hpp"
@@ -8,33 +7,33 @@
 #define WINDOW_N "Procedural Generation Constraint Satisfaction"
 
 Analyzer sampleAnalyzer;
-Generator generator;
+//Generator generator;
 
 // Main loop initialization
 void Init() {
     InitWindow(WINDOW_W, WINDOW_H, WINDOW_N);
     SetTargetFPS(60);
 
-    Ruleset ruleset = sampleAnalyzer.AnalyzeImage("../assets/sample4.png");
+    sampleAnalyzer.AnalyzeImage("../assets/sample2.png", 2);
 
-    generator.DebugInit(ruleset, 100, 100);
+//    generator.DebugInit(ruleset, 100, 100);
 }
 
 
 // Main loop update
 void Update(float deltaTime) {
-    const int numIterations = 10;
-    for (int i = 0; i < numIterations; ++i) {
-        generator.DebugNext();
-    }
+    //const int numIterations = 10;
+    //for (int i = 0; i < numIterations; ++i) {
+    //    generator.DebugNext();
+    //}
 }
 
 
 // Main loop input
 void Input() {
-    if (IsKeyPressed(KEY_SPACE)) {
-        generator.DebugNext();
-    }
+    //if (IsKeyPressed(KEY_SPACE)) {
+    //    generator.DebugNext();
+    //}
 }
 
 
@@ -46,14 +45,14 @@ void Render() {
     //DrawFPS(0, 0);
 
     // Draw
-    DrawTextureEx(generator.debugTexture, Vector2{.x = 0, .y = 0}, 0, 8, WHITE);
-
+    DrawTextureEx(sampleAnalyzer.debugTexture, Vector2{.x = 0, .y = 0}, 0, 8, WHITE);
+    
     EndDrawing();
 }
 
 
 void OnClose() {
-    UnloadTexture(generator.debugTexture);
+    //UnloadTexture(generator.debugTexture);
 }
 
 // Main loop

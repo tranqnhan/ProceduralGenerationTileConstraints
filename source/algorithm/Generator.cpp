@@ -131,6 +131,8 @@ void Generator::DebugInit(const Ruleset& rules, int width, int height) {
 void Generator::DebugNext() {
     if (this->debugOpenSet.GetSize() <= 0) return;
     
+    const int constraintExpand = debugRules.GetConstraintExpand();
+
     const int cellIndex = debugOpenSet.TopItemID();
     debugOpenSet.Pop();
     
@@ -141,8 +143,8 @@ void Generator::DebugNext() {
         const int cellY = cellIndex / debugHeight;
 
         ImageDrawPixel(&debugImage, cellX, cellY, RED);
-
-        std::printf("No possibilities on cell %i %i\n", cellX, cellY);
+        UpdateTexture(debugTexture, debugImage.data);
+        //std::printf("No possibilities on cell %i %i\n", cellX, cellY);
         return;
     }
 
@@ -157,10 +159,10 @@ void Generator::DebugNext() {
     ImageDrawPixel(&debugImage, cellX, cellY, debugRules.GetColor(type));
     UpdateTexture(debugTexture, debugImage.data);
 
-    const int boundMinY = (cellY - 1) > 0 ? (cellY - 1) : 0;
-    const int boundMinX = (cellX - 1) > 0 ? (cellX - 1) : 0;
-    const int boundMaxY = (cellY + 2) > debugHeight ? debugHeight : (cellY + 2);
-    const int boundMaxX = (cellX + 2) > debugWidth ? debugWidth : (cellX + 2);
+    const int boundMinY = (cellY - constraintExpand) > 0 ? (cellY - constraintExpand) : 0;
+    const int boundMinX = (cellX - constraintExpand) > 0 ? (cellX - constraintExpand) : 0;
+    const int boundMaxY = (cellY + constraintExpand + 1) > debugHeight ? debugHeight : (cellY + constraintExpand + 1);
+    const int boundMaxX = (cellX + constraintExpand + 1) > debugWidth ? debugWidth : (cellX + constraintExpand + 1);
     
     int direction = -1;
     for (int i = boundMinY; i < boundMaxY; ++i) {
