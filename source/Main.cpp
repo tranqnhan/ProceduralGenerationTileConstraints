@@ -14,7 +14,7 @@ void Init() {
     InitWindow(WINDOW_W, WINDOW_H, WINDOW_N);
     SetTargetFPS(60);
 
-    sampleAnalyzer.AnalyzeImage("../assets/sample2.png", 2);
+    sampleAnalyzer.AnalyzeImage("../assets/sample1.png", 3);
 
 //    generator.DebugInit(ruleset, 100, 100);
 }

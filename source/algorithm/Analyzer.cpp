@@ -65,20 +65,21 @@ void Analyzer::DebugGenerateTexture(const std::vector<Color> composites, int len
     debugImage = GenImageColor(composites.size() / length, length, BLACK);
     Color *debugColors = (Color *) debugImage.data;
     
-    const int numComposites = composites.size() / (length * length);
+    // const int numComposites = composites.size() / (length * length);
     
-    for (int i = 0; i < numComposites; ++i) {
-       for (int k = 0; k < length; ++k) {
-           for (int l = 0; l < length; ++l) {
-               debugColors[(k * length + l) * (i + 1)] = composites[(i + 1) * (k + 1) * (l + 1) - 1];
-           }            
-       }
-    }
+    // for (int i = 0; i < numComposites; ++i) {
+    //    for (int k = 0; k < length; ++k) {
+    //        for (int l = 0; l < length; ++l) {
+    //            debugColors[(k * length + l) * (i + 1)] = composites[(i + 1) * (k + 1) * (l + 1) - 1];
+    //        }            
+    //    }
+    // }
 
+    int m = 0;
     for (int i = 0; i < length; ++i) {
         for (int k = i * length; k < composites.size(); k += length * length) {
-            for (int j = k; j < length; ++j) {
-                
+            for (int j = k; j < k + length; ++j) {
+                debugColors[m++] = composites[j];
             }
         }
     }
