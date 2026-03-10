@@ -35,7 +35,7 @@ int Processor::ProcessKernel(int x, int y, int width, int height, int length, Co
 }
 
 
-void Processor::AnalyzeImage(const std::string &imageFile, int length) {
+Ruleset Processor::AnalyzeImage(const std::string &imageFile, int length) {
     // Load image from filename
     Image sampleImage = LoadImage(imageFile.c_str());    
     ImageFormat(&sampleImage, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
@@ -47,17 +47,17 @@ void Processor::AnalyzeImage(const std::string &imageFile, int length) {
     const int compositeHeight = height + length - 1;
     const int compositeWidth = width + length - 1;
 
-    int composite[compositeHeight * compositeWidth];
+    int compositeMap[compositeHeight * compositeWidth];
 
-    Composite compositeTree;
+    Composite composite;
     
     // Get kernels
     for (int i = -length + 1; i < height; ++i) {
         for (int j = -length + 1; j < width; ++j) {
-            const int kernelId = ProcessKernel(j, i, width, height, length, colors, compositeTree);
+            const int kernelId = ProcessKernel(j, i, width, height, length, colors, composite);
             const int y = i + length - 1;
             const int x = j + length - 1; 
-            composite[y * compositeWidth + x] = kernelId;
+            compositeMap[y * compositeWidth + x] = kernelId;
         }
     }
 
@@ -67,58 +67,63 @@ void Processor::AnalyzeImage(const std::string &imageFile, int length) {
     for (int i = 0; i < compositeWidth * compositeHeight; ++i) {
         const int x = i % compositeWidth;
         const int y = int(i / compositeWidth);
-        const int kernelId = composite[i];
+        const int kernelId = compositeMap[i];
         
-        Kernel& kernel = compositeTree.GetKernel(kernelId);
+        Kernel& kernel = composite.GetKernel(kernelId);
         
         // TODO: Maybe unrolling these out to eliminate an additional check
         // North
         if (y - 1 >= 0) {
-            const int northKernelId = composite[(y - 1) * compositeWidth + x];
-            auto adjacentKernelId = kernel.adjacentKernelFrequencies[TileDirection::NORTH].find(northKernelId);
-            if (adjacentKernelId == kernel.adjacentKernelFrequencies[TileDirection::NORTH].end()) {
-                adjacentKernelId->second = 1;
-            } else {
-                adjacentKernelId->second++;
-            }
+            const int northKernelId = compositeMap[(y - 1) * compositeWidth + x];
+            kernel.IncreaseAdjacentFrequency(northKernelId, TileDirection::NORTH);
         }
 
         // South
         if (y + 1 < compositeHeight) {
-            const int northKernelId = composite[(y + 1) * compositeWidth + x];
-            auto adjacentKernelId = kernel.adjacentKernelFrequencies[TileDirection::SOUTH].find(northKernelId);
-            if (adjacentKernelId == kernel.adjacentKernelFrequencies[TileDirection::SOUTH].end()) {
-                adjacentKernelId->second = 1;
-            } else {
-                adjacentKernelId->second++;
-            }
+            const int southKernelId = compositeMap[(y + 1) * compositeWidth + x];
+            kernel.IncreaseAdjacentFrequency(southKernelId, TileDirection::SOUTH);
         }
 
         // West
         if (x - 1 >= 0) {
-            const int northKernelId = composite[y * compositeWidth + (x - 1)];
-            auto adjacentKernelId = kernel.adjacentKernelFrequencies[TileDirection::WEST].find(northKernelId);
-            if (adjacentKernelId == kernel.adjacentKernelFrequencies[TileDirection::WEST].end()) {
-                adjacentKernelId->second = 1;
-            } else {
-                adjacentKernelId->second++;
-            }
+            const int westKernelId = compositeMap[y * compositeWidth + (x - 1)];
+            kernel.IncreaseAdjacentFrequency(westKernelId, TileDirection::WEST);
         }
 
         // East
-        if (x + 1 >= 0) {
-            const int northKernelId = composite[y * compositeWidth + (x + 1)];
-            auto adjacentKernelId = kernel.adjacentKernelFrequencies[TileDirection::EAST].find(northKernelId);
-            if (adjacentKernelId == kernel.adjacentKernelFrequencies[TileDirection::EAST].end()) {
-                adjacentKernelId->second = 1;
-            } else {
-                adjacentKernelId->second++;
-            }
+        if (x + 1 < compositeWidth) {
+            const int eastKernelId = compositeMap[y * compositeWidth + (x + 1)];
+            kernel.IncreaseAdjacentFrequency(eastKernelId, TileDirection::EAST);
         }
     }
 
-    DebugGenerateTexture(compositeTree, width, height, length);
+    // Translate to Ruleset
+    Ruleset ruleset(composite.GetNumKernels());
+    const std::vector<Kernel>& kernels = composite.GetKernels();
+    TileDirection directions[4] = {NORTH, SOUTH, WEST, EAST};
+    for (int i = 0; i < composite.GetNumKernels(); ++i) {
+        const Kernel& kernel = kernels[i];
+        ruleset.SetTileFrequency(i, kernel.GetGlobalFrequency());
+        ruleset.SetTileColor(i, kernel.leafs[0].color);
+        for (TileDirection d : directions) {
+            const int adjacentSize = kernel.adjacentKernelFrequencies[d].size();
+            std::vector<int> adjacentTileIds(adjacentSize);
+            std::vector<int> adjacentTileFrequencies(adjacentSize);
+            int v = 0;
+            for (const auto& iteAdjacentTile : kernel.adjacentKernelFrequencies[d]) {
+                adjacentTileIds[v] = iteAdjacentTile.first;
+                adjacentTileFrequencies[v] = iteAdjacentTile.second;
+                v++;
+            }
+            ruleset.SetAdjacentTiles(i, d, adjacentTileIds, adjacentTileFrequencies);
+        }
+    }
+    
+    DebugGenerateTexture(composite, width, height, length);
+
+    return ruleset;
 }
+
 
 void Processor::DebugGenerateTexture(const Composite& compositeTree, int width, int height, int length) {
     //Debugging
@@ -128,7 +133,7 @@ void Processor::DebugGenerateTexture(const Composite& compositeTree, int width, 
     debugImage = GenImageColor(debugImageWidth, debugImageHeight, WHITE);
     Color *debugColors = (Color *) debugImage.data;
     
-    const std::vector<Kernel>& kernels = compositeTree.GetBranches();
+    const std::vector<Kernel>& kernels = compositeTree.GetKernels();
 
     int atX = 0;
     int atY = 0;

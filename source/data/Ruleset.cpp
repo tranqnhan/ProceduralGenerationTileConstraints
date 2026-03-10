@@ -1,6 +1,7 @@
 #include "Ruleset.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
 
@@ -8,6 +9,7 @@ AdjacentTile::AdjacentTile() {
     this->id = 0;
     this->localFrequency = 0;
 }
+
 
 AdjacentTile::AdjacentTile(int id, int localFrequency) {
     this->id = id;
@@ -19,19 +21,42 @@ int AdjacentTile::GetTileId() const {
     return this->id;
 }
 
+
 int AdjacentTile::GetLocalFrequency() const {
     return this->localFrequency;
 }
+
 
 Tile::Tile() {
     this->color = 0;
     this->globalFrequency = 0;
 }
 
+
 Tile::Tile(uint32_t color, int globalFrequency) {
     this->color = color;
     this->globalFrequency = globalFrequency;
 }
+
+
+void Tile::SetColor(uint32_t color) {
+    this->color = color;
+}
+
+
+uint32_t Tile::GetColor() const {
+    return this->color;
+}
+
+
+int Tile::GetGlobalFrequency() const {
+    return this->globalFrequency;
+}
+
+void Tile::SetGlobalFrequency(int globalFrequency) {
+    this->globalFrequency = globalFrequency;
+}
+
 
 void Tile::SetAdjacentTiles(std::vector<AdjacentTile>&& adjacentTiles, TileDirection direction) {
     std::sort(adjacentTiles.begin(), adjacentTiles.end(), [](const AdjacentTile& a, const AdjacentTile b) {
@@ -40,12 +65,39 @@ void Tile::SetAdjacentTiles(std::vector<AdjacentTile>&& adjacentTiles, TileDirec
     this->adjacentTiles[direction] = std::move(adjacentTiles);
 }
 
+
 const std::vector<AdjacentTile>& Tile::GetAdjacentTiles(TileDirection direction) const {
     return this->adjacentTiles[direction];
 }
 
+//TODO: remove temporary constructor
+Ruleset::Ruleset() {
+    
+}
+
+
 Ruleset::Ruleset(int numTiles) {
     this->tiles.resize(numTiles);
+}
+
+
+int Ruleset::GetNumTiles() const {
+    return this->tiles.size();
+}
+
+
+const std::vector<Tile>& Ruleset::GetTiles() const {
+    return this->tiles;
+}
+
+
+void Ruleset::SetTileColor(int tileId, uint32_t color) {
+    this->tiles[tileId].SetColor(color);
+}
+
+
+void Ruleset::SetTileFrequency(int tileId, int globalFrequency) {
+    this->tiles[tileId].SetGlobalFrequency(globalFrequency);
 }
 
 

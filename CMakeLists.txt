@@ -19,7 +19,9 @@ target_link_libraries(ProceduralGenerationConstraintSatisfaction raylib)
 target_compile_options(ProceduralGenerationConstraintSatisfaction PRIVATE -g)
 
 target_sources(ProceduralGenerationConstraintSatisfaction PRIVATE
-    source/algorithm/Analyzer.cpp
-    source/data/CompositeTree.cpp
+    source/algorithm/Processor.cpp
+    source/algorithm/Generator.cpp
+    source/data/Ruleset.cpp
+    source/data/Composite.cpp
     source/Main.cpp
 )

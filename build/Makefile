@@ -160,53 +160,101 @@ source/Main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/Main.cpp.s
 .PHONY : source/Main.cpp.s
 
-source/algorithm/Analyzer.o: source/algorithm/Analyzer.cpp.o
-.PHONY : source/algorithm/Analyzer.o
+source/algorithm/Generator.o: source/algorithm/Generator.cpp.o
+.PHONY : source/algorithm/Generator.o
 
 # target to build an object file
-source/algorithm/Analyzer.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/algorithm/Analyzer.cpp.o
-.PHONY : source/algorithm/Analyzer.cpp.o
+source/algorithm/Generator.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/algorithm/Generator.cpp.o
+.PHONY : source/algorithm/Generator.cpp.o
 
-source/algorithm/Analyzer.i: source/algorithm/Analyzer.cpp.i
-.PHONY : source/algorithm/Analyzer.i
+source/algorithm/Generator.i: source/algorithm/Generator.cpp.i
+.PHONY : source/algorithm/Generator.i
 
 # target to preprocess a source file
-source/algorithm/Analyzer.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/algorithm/Analyzer.cpp.i
-.PHONY : source/algorithm/Analyzer.cpp.i
+source/algorithm/Generator.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/algorithm/Generator.cpp.i
+.PHONY : source/algorithm/Generator.cpp.i
 
-source/algorithm/Analyzer.s: source/algorithm/Analyzer.cpp.s
-.PHONY : source/algorithm/Analyzer.s
+source/algorithm/Generator.s: source/algorithm/Generator.cpp.s
+.PHONY : source/algorithm/Generator.s
 
 # target to generate assembly for a file
-source/algorithm/Analyzer.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/algorithm/Analyzer.cpp.s
-.PHONY : source/algorithm/Analyzer.cpp.s
+source/algorithm/Generator.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/algorithm/Generator.cpp.s
+.PHONY : source/algorithm/Generator.cpp.s
 
-source/data/CompositeTree.o: source/data/CompositeTree.cpp.o
-.PHONY : source/data/CompositeTree.o
+source/algorithm/Processor.o: source/algorithm/Processor.cpp.o
+.PHONY : source/algorithm/Processor.o
 
 # target to build an object file
-source/data/CompositeTree.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/data/CompositeTree.cpp.o
-.PHONY : source/data/CompositeTree.cpp.o
+source/algorithm/Processor.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/algorithm/Processor.cpp.o
+.PHONY : source/algorithm/Processor.cpp.o
 
-source/data/CompositeTree.i: source/data/CompositeTree.cpp.i
-.PHONY : source/data/CompositeTree.i
+source/algorithm/Processor.i: source/algorithm/Processor.cpp.i
+.PHONY : source/algorithm/Processor.i
 
 # target to preprocess a source file
-source/data/CompositeTree.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/data/CompositeTree.cpp.i
-.PHONY : source/data/CompositeTree.cpp.i
+source/algorithm/Processor.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/algorithm/Processor.cpp.i
+.PHONY : source/algorithm/Processor.cpp.i
 
-source/data/CompositeTree.s: source/data/CompositeTree.cpp.s
-.PHONY : source/data/CompositeTree.s
+source/algorithm/Processor.s: source/algorithm/Processor.cpp.s
+.PHONY : source/algorithm/Processor.s
 
 # target to generate assembly for a file
-source/data/CompositeTree.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/data/CompositeTree.cpp.s
-.PHONY : source/data/CompositeTree.cpp.s
+source/algorithm/Processor.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/algorithm/Processor.cpp.s
+.PHONY : source/algorithm/Processor.cpp.s
+
+source/data/Composite.o: source/data/Composite.cpp.o
+.PHONY : source/data/Composite.o
+
+# target to build an object file
+source/data/Composite.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/data/Composite.cpp.o
+.PHONY : source/data/Composite.cpp.o
+
+source/data/Composite.i: source/data/Composite.cpp.i
+.PHONY : source/data/Composite.i
+
+# target to preprocess a source file
+source/data/Composite.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/data/Composite.cpp.i
+.PHONY : source/data/Composite.cpp.i
+
+source/data/Composite.s: source/data/Composite.cpp.s
+.PHONY : source/data/Composite.s
+
+# target to generate assembly for a file
+source/data/Composite.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/data/Composite.cpp.s
+.PHONY : source/data/Composite.cpp.s
+
+source/data/Ruleset.o: source/data/Ruleset.cpp.o
+.PHONY : source/data/Ruleset.o
+
+# target to build an object file
+source/data/Ruleset.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/data/Ruleset.cpp.o
+.PHONY : source/data/Ruleset.cpp.o
+
+source/data/Ruleset.i: source/data/Ruleset.cpp.i
+.PHONY : source/data/Ruleset.i
+
+# target to preprocess a source file
+source/data/Ruleset.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/data/Ruleset.cpp.i
+.PHONY : source/data/Ruleset.cpp.i
+
+source/data/Ruleset.s: source/data/Ruleset.cpp.s
+.PHONY : source/data/Ruleset.s
+
+# target to generate assembly for a file
+source/data/Ruleset.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/build.make CMakeFiles/ProceduralGenerationConstraintSatisfaction.dir/source/data/Ruleset.cpp.s
+.PHONY : source/data/Ruleset.cpp.s
 
 # Help Target
 help:
@@ -221,12 +269,18 @@ help:
 	@echo "... source/Main.o"
 	@echo "... source/Main.i"
 	@echo "... source/Main.s"
-	@echo "... source/algorithm/Analyzer.o"
-	@echo "... source/algorithm/Analyzer.i"
-	@echo "... source/algorithm/Analyzer.s"
-	@echo "... source/data/CompositeTree.o"
-	@echo "... source/data/CompositeTree.i"
-	@echo "... source/data/CompositeTree.s"
+	@echo "... source/algorithm/Generator.o"
+	@echo "... source/algorithm/Generator.i"
+	@echo "... source/algorithm/Generator.s"
+	@echo "... source/algorithm/Processor.o"
+	@echo "... source/algorithm/Processor.i"
+	@echo "... source/algorithm/Processor.s"
+	@echo "... source/data/Composite.o"
+	@echo "... source/data/Composite.i"
+	@echo "... source/data/Composite.s"
+	@echo "... source/data/Ruleset.o"
+	@echo "... source/data/Ruleset.i"
+	@echo "... source/data/Ruleset.s"
 .PHONY : help
 
 

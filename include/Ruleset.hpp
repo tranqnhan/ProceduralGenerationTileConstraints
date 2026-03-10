@@ -36,6 +36,10 @@ public:
     const std::vector<AdjacentTile>& GetAdjacentTiles(TileDirection direction) const;
 
     uint32_t GetColor() const;
+    void SetColor(uint32_t color);
+
+    int GetGlobalFrequency() const;
+    void SetGlobalFrequency(int globalFrequency);
 
 private:
     uint32_t color;
@@ -46,6 +50,7 @@ private:
 
 class Ruleset {
 public:
+    Ruleset();
     Ruleset(int numTiles);
 
     void SetAdjacentTiles(int tileId, TileDirection direction, const std::vector<int>& adjacentTileIds, const std::vector<int>& adjacentTileFrequencies);
@@ -53,6 +58,10 @@ public:
     const Tile& GetTile(int tileId) const;
     const std::vector<AdjacentTile>& GetAdjacentTiles(int tileId, TileDirection direction) const;
     const uint32_t GetTileColor(int tileId) const;
+    int GetNumTiles() const;
+    const std::vector<Tile>& GetTiles() const;
+    void SetTileFrequency(int tileId, int globalFrequency);
+    void SetTileColor(int tileId, uint32_t color);
 
 private:
     std::vector<Tile> tiles;

@@ -1,4 +1,5 @@
 #include "Composite.hpp"
+#include "Ruleset.hpp"
 
 Kernel::Kernel(std::vector<Item>&& leafs){
     this->leafs = std::move(leafs);
@@ -14,6 +15,17 @@ void Kernel::IncreaseGlobalFrequency(){
 int Kernel::GetGlobalFrequency() const {
     return this->globalFrequency;
 }
+
+
+void Kernel::IncreaseAdjacentFrequency(int adjacentKernelId, TileDirection direction) {
+    auto iteAdjacentKernel = this->adjacentKernelFrequencies[direction].find(adjacentKernelId);
+    if (iteAdjacentKernel == this->adjacentKernelFrequencies[direction].end()) {
+        this->adjacentKernelFrequencies[direction].emplace(adjacentKernelId, 1);
+    } else {
+        iteAdjacentKernel->second++;
+    }
+}
+
 
 Kernel& Composite::GetKernel(int kernelId) {
     return this->kernels[kernelId];
@@ -62,6 +74,11 @@ int Composite::IsKernelExists(const std::vector<uint32_t>& kernel) {
 }
 
 
-const std::vector<Kernel>& Composite::GetBranches() const {
+const std::vector<Kernel>& Composite::GetKernels() const {
     return this->kernels;
+}
+
+
+const int Composite::GetNumKernels() const {
+    return this->kernels.size();
 }

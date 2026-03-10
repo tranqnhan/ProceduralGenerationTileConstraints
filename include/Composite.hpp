@@ -34,7 +34,7 @@ public:
 
     void IncreaseGlobalFrequency();
     int GetGlobalFrequency() const;
-
+    void IncreaseAdjacentFrequency(int adjacentKernelId, TileDirection direction);
 };
 
 
@@ -43,8 +43,9 @@ class Composite {
 public:
     int AppendKernel(const std::vector<uint32_t>& kernel);
     int GetGlobalFrequency(int kernelId) const;
-    const std::vector<Kernel>& GetBranches() const;
+    const std::vector<Kernel>& GetKernels() const;
     Kernel& GetKernel(int kernelId);
+    const int GetNumKernels() const;
 
 private:
     std::vector<Kernel> kernels;
