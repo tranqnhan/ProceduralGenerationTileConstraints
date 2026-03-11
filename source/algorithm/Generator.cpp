@@ -1,14 +1,17 @@
+#include <algorithm>
 #include <cstdint>
 #include <bit>
+#include <queue>
+#include <utility>
 #include <vector>
 
 #include "Heap.hpp"
+#include "XorshiftRandom.hpp"
 #include "raylib.h"
 
 #include "Ruleset.hpp"
 #include "Generator.hpp"
 
-uint32_t Generator::randomState = 12345;
 
 Cell::Cell(const Ruleset& ruleset, const std::vector<AdjacentTile>& initialPossibilities) {
     this->tilePossibilities = std::move(initialPossibilities);
@@ -16,6 +19,7 @@ Cell::Cell(const Ruleset& ruleset, const std::vector<AdjacentTile>& initialPossi
     for (const AdjacentTile& adj : initialPossibilities) {
         this->globalFrequency += ruleset.GetTile(adj.GetTileId()).GetGlobalFrequency();
     }
+    this->tileId = -1;
 }
 
 
@@ -54,33 +58,39 @@ void Cell::Intersect(const Ruleset& ruleset, const std::vector<AdjacentTile>& po
 }
 
 
-int Cell::Solve() const {
+int Cell::Collapse() {
+    
     // Summing all frequencies
-    int sumFrequencies = 0;
-    for (const AdjacentTile& adj : this->tilePossibilities) {
-        sumFrequencies += adj.GetLocalFrequency();
-    }
-    std::printf("Sum frequencies = %i\n", sumFrequencies);
-    if (sumFrequencies == 0) {
-        return -1;
-    }
+    // int sumFrequencies = 0;
+    // for (const AdjacentTile& adj : this->tilePossibilities) {
+    //     sumFrequencies += adj.GetLocalFrequency();
+    // }
+    // if (sumFrequencies == 0) {
+    //     return -1;
+    // }
 
-    // Get a random tile id from the possibilities
-    int resultTileId;
-    int rand = Generator::RandomInteger(0, sumFrequencies);
-    for (const AdjacentTile& adj : this->tilePossibilities) {
-        rand -= adj.GetLocalFrequency();
-        if (rand <= 0) {
-            resultTileId = adj.GetTileId();
-            break;
-        }
-    }
+    // // Get a random tile id from the possibilities
+    // int resultTileId;
+    // int rand = Generator::RandomInteger(0, sumFrequencies);
+    // for (const AdjacentTile& adj : this->tilePossibilities) {
+    //     rand -= adj.GetLocalFrequency();
+    //     if (rand <= 0) {
+    //         resultTileId = adj.GetTileId();
+    //         break;
+    //     }
+    // }
+    if (this->tilePossibilities.size() == 0) return -1;
 
-    return resultTileId;
+    const int result = XorshiftRandom::RandomInteger(0, this->tilePossibilities.size() - 1);
+    
+    this->tileId = this->tilePossibilities[result].GetTileId();
+    this->tilePossibilities.erase(this->tilePossibilities.begin() + result);
+
+    return this->tileId;
 }
     
-int Cell::GetGlobalFrequency() const {
-    return this->globalFrequency;
+int Cell::GetEntropy() const {
+    return this->tilePossibilities.size() - 1;
 }
 
 Generator::Generator() {
@@ -101,7 +111,7 @@ uint32_t Generator::ResolveContraints(uint32_t contraints) {
 
     if (totalPossibilities == 0) return 0;
 
-    int pick = RandomInteger(1, totalPossibilities);
+    int pick = XorshiftRandom::RandomInteger(1, totalPossibilities);
 
     uint32_t mask = 0b1;
 
@@ -195,10 +205,9 @@ void Generator::DebugInit(const Ruleset& rules, int width, int height) {
 
     this->debugExplored = std::vector<bool>(width * height, false);
     
-    this->debugCellsIndex = std::vector<int>(width * height, -1);
-    this->debugCells = std::vector<Cell>();
+    this->debugCells = std::vector<Cell>(width * height, -1);
 
-    int initialCoords = RandomInteger(0, width * height - 1);
+    int initialCoords = XorshiftRandom::RandomInteger(0, width * height - 1);
 
     std::vector<AdjacentTile> initialTiles;
     for (int i = 0; i < rules.GetNumTiles(); ++i) {
@@ -206,14 +215,12 @@ void Generator::DebugInit(const Ruleset& rules, int width, int height) {
         initialTiles.emplace_back(i, tile.GetGlobalFrequency());
     }
 
-    this->debugCells.emplace_back(rules, initialTiles);
-    this->debugCellsIndex[initialCoords] = this->debugCells.size() - 1;
-
-    this->debugOpenSet.Push(initialCoords, initialCoords);
+    this->debugOpenSet.Push(0, initialCoords);
 }
 
 
-void Generator::DebugPropagation(const Tile& tile, int coords) {
+// TODO: Add propagaton outwards
+void Generator::DebugPropagate(const Tile& tile, int coords) {
     const int x = coords % this->debugWidth;
     const int y = coords / this->debugWidth;
     
@@ -244,22 +251,26 @@ void Generator::DebugExpandAdjacent(int x, int y, TileDirection direction, const
     if (this->debugCellsIndex[adjCoords] == -1) {
         this->debugCells.emplace_back(this->debugRules, adjTiles);
         this->debugCellsIndex[adjCoords] = this->debugCells.size() - 1;
+        //std::printf("ADDED coords %i\n", adjCoords, this->debugCells.size() - 1);
     } else {
         this->debugCells[this->debugCellsIndex[adjCoords]].Intersect(this->debugRules, adjTiles);
     }
-    this->debugOpenSet.Push(adjCoords, adjCoords);
+    int entropy = this->debugCells[this->debugCellsIndex[adjCoords]].GetEntropy();
+    this->debugOpenSet.Push(entropy, adjCoords);
+   // std::printf(">>> debug open set add entropy %i coords %i\n", entropy, adjCoords);
 }
 
 
 void Generator::DebugNext() {
-    std::printf("Debug next! %i\n", this->debugOpenSet.GetSize());
     if (this->debugOpenSet.GetSize() <= 0) return;
 
-    const int coords = debugOpenSet.TopItemID();
-    debugOpenSet.Pop();
+    const int coords = this->debugOpenSet.TopItemID();
+    this->debugOpenSet.Pop();
 
-    const int solvedTileId = this->debugCells[this->debugCellsIndex[coords]].Solve();
-    std::printf("Solved Tile! %i\n", solvedTileId);
+    const int cellIndex = this->debugCellsIndex[coords];
+  //  std::printf("coords %i cell index %i\n", coords, cellIndex);
+    const int solvedTileId = this->debugCells[cellIndex].Collapse();
+    // std::printf("Solved Tile! %i\n", solvedTileId);
 
     if (solvedTileId == -1) {
         const int cellX = coords % debugWidth;
@@ -285,11 +296,13 @@ void Generator::DebugNext() {
         .a = 255
     };
 
-    std::printf("color! %b\n", compressedColor);
-
     ImageDrawPixel(&debugImage, cellX, cellY, color);
     UpdateTexture(debugTexture, debugImage.data);
 
     // Add adjacents
-    DebugPropagation(tile, coords);
+    std::queue<int> queueCoords;
+    queueCoords.emplace(coords);
+
+
+    DebugPropagate(tile, coords);
 }

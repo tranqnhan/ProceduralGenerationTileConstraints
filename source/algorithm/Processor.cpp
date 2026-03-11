@@ -31,7 +31,7 @@ int Processor::ProcessKernel(int x, int y, int width, int height, int length, Co
         }
     }
 
-    return compositeTree.AppendKernel(kernel);
+    return compositeTree.AppendKernel(std::move(kernel));
 }
 
 
@@ -44,58 +44,64 @@ Ruleset Processor::AnalyzeImage(const std::string &imageFile, int length) {
     const int height = sampleImage.height;
     const int width = sampleImage.width;
 
-    const int compositeHeight = height + length - 1;
-    const int compositeWidth = width + length - 1;
+    //TODO: (1)
+    // const int compositeHeight = height + length - 1;
+    // const int compositeWidth = width + length - 1;
+    const int compositeHeight = height;
+    const int compositeWidth = width;
 
-    int compositeMap[compositeHeight * compositeWidth];
-
-    Composite composite;
+    Composite composite(length);
     
     // Get kernels
-    for (int i = -length + 1; i < height; ++i) {
-        for (int j = -length + 1; j < width; ++j) {
-            const int kernelId = ProcessKernel(j, i, width, height, length, colors, composite);
-            const int y = i + length - 1;
-            const int x = j + length - 1; 
-            compositeMap[y * compositeWidth + x] = kernelId;
+    // TODO: (1)
+    // for (int i = -length + 1; i < height; ++i) {
+    //     for (int j = -length + 1; j < width; ++j) {
+    //         const int kernelId = ProcessKernel(j, i, width, height, length, colors, composite);
+    //         const int y = i + length - 1;
+    //         const int x = j + length - 1; 
+    //         compositeMap[y * compositeWidth + x] = kernelId;
+    //     }
+    // }
+
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            ProcessKernel(j, i, width, height, length, colors, composite);
         }
     }
-
     UnloadImage(sampleImage);
 
     // Get adjacent kernels
-    for (int i = 0; i < compositeWidth * compositeHeight; ++i) {
-        const int x = i % compositeWidth;
-        const int y = int(i / compositeWidth);
-        const int kernelId = compositeMap[i];
-        
-        Kernel& kernel = composite.GetKernel(kernelId);
-        
-        // TODO: Maybe unrolling these out to eliminate an additional check
-        // North
-        if (y - 1 >= 0) {
-            const int northKernelId = compositeMap[(y - 1) * compositeWidth + x];
-            kernel.IncreaseAdjacentFrequency(northKernelId, TileDirection::NORTH);
-        }
+    for (int i = 0; i < composite.GetNumKernels(); ++i) {
+        Kernel& primaryKernel = composite.GetKernel(i);
+        for (int j = i; j < composite.GetNumKernels(); ++j) {
+            Kernel& secondaryKernel = composite.GetKernel(j);
+            if (primaryKernel.CompareAdjacentOverlap(secondaryKernel, SOUTH, NORTH)) {
+                primaryKernel.AddAdjacency(j, NORTH);
+                secondaryKernel.AddAdjacency(i, SOUTH);
+            }
+            
+            if (primaryKernel.CompareAdjacentOverlap(secondaryKernel, NORTH, SOUTH)) {
+                primaryKernel.AddAdjacency(j, SOUTH);
+                secondaryKernel.AddAdjacency(i, NORTH);
+            }
+            
+            if (primaryKernel.CompareAdjacentOverlap(secondaryKernel, EAST, WEST)) {
+                primaryKernel.AddAdjacency(j, WEST);
+                secondaryKernel.AddAdjacency(i, EAST);
+            }
 
-        // South
-        if (y + 1 < compositeHeight) {
-            const int southKernelId = compositeMap[(y + 1) * compositeWidth + x];
-            kernel.IncreaseAdjacentFrequency(southKernelId, TileDirection::SOUTH);
-        }
-
-        // West
-        if (x - 1 >= 0) {
-            const int westKernelId = compositeMap[y * compositeWidth + (x - 1)];
-            kernel.IncreaseAdjacentFrequency(westKernelId, TileDirection::WEST);
-        }
-
-        // East
-        if (x + 1 < compositeWidth) {
-            const int eastKernelId = compositeMap[y * compositeWidth + (x + 1)];
-            kernel.IncreaseAdjacentFrequency(eastKernelId, TileDirection::EAST);
+            if (primaryKernel.CompareAdjacentOverlap(secondaryKernel, WEST, EAST)) {
+                primaryKernel.AddAdjacency(j, EAST);
+                secondaryKernel.AddAdjacency(i, WEST);
+            }
         }
     }
+
+    // for (int i = 0; i < composite.GetNumKernels(); ++i) {
+    //     std::printf("tile %i \n", i);
+    //     const Kernel& primaryKernel = composite.GetKernel(i);
+    //     primaryKernel.Print();
+    // }
 
     // Translate to Ruleset
     Ruleset ruleset(composite.GetNumKernels());
@@ -104,7 +110,7 @@ Ruleset Processor::AnalyzeImage(const std::string &imageFile, int length) {
     for (int i = 0; i < composite.GetNumKernels(); ++i) {
         const Kernel& kernel = kernels[i];
         ruleset.SetTileFrequency(i, kernel.GetGlobalFrequency());
-        ruleset.SetTileColor(i, kernel.leafs[0].color);
+        ruleset.SetTileColor(i, kernel.leafs[0]);
         for (TileDirection d : directions) {
             const int adjacentSize = kernel.adjacentKernelFrequencies[d].size();
             std::vector<int> adjacentTileIds(adjacentSize);
@@ -119,7 +125,7 @@ Ruleset Processor::AnalyzeImage(const std::string &imageFile, int length) {
         }
     }
     
-    DebugGenerateTexture(composite, width, height, length);
+    //DebugGenerateTexture(composite, width, height, length);
 
     return ruleset;
 }
@@ -127,8 +133,10 @@ Ruleset Processor::AnalyzeImage(const std::string &imageFile, int length) {
 
 void Processor::DebugGenerateTexture(const Composite& compositeTree, int width, int height, int length) {
     //Debugging
-    const int debugImageWidth = (width + length - 1) * length;
-    const int debugImageHeight = (height + length - 1) * length;
+    std::printf("length %i\n", length);
+
+    const int debugImageWidth = width * length;
+    const int debugImageHeight = height * length;
     
     debugImage = GenImageColor(debugImageWidth, debugImageHeight, WHITE);
     Color *debugColors = (Color *) debugImage.data;
@@ -141,7 +149,7 @@ void Processor::DebugGenerateTexture(const Composite& compositeTree, int width, 
     for (int k = 0; k < kernels.size(); ++k) {
         for (int i = 0; i < length; ++i) {
             for (int j = 0; j < length; ++j) {
-                const uint32_t colorId = kernels[k].leafs[i * length + j].color;
+                const uint32_t colorId = kernels[k].leafs[i * length + j];
                 const Color color = Color{
                     .r = (unsigned char)((colorId & 0xFF0000) >> 16), 
                     .g = (unsigned char)((colorId & 0xFF00) >> 8),

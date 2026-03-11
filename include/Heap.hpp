@@ -1,8 +1,11 @@
 #pragma once
 
-#include "ankerl/unordered_dense.h"
 #include <functional>
 #include <vector>
+
+#include "ankerl/unordered_dense.h"
+
+#include "XorshiftRandom.hpp"
 
 template<typename T>
 class Heap {

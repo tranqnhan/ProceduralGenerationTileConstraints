@@ -1,11 +1,16 @@
 #include "raylib.h"
 
+#include "XorshiftRandom.hpp"
 #include "Processor.hpp"
 #include "Generator.hpp"
 
 #define WINDOW_W 800
 #define WINDOW_H 800
 #define WINDOW_N "Procedural Generation Constraint Satisfaction"
+
+
+uint32_t XorshiftRandom::randomState = 1234;
+
 
 Processor sampleProcessor;
 Generator generator;
@@ -15,7 +20,7 @@ void Init() {
     InitWindow(WINDOW_W, WINDOW_H, WINDOW_N);
     SetTargetFPS(60);
 
-    Ruleset ruleset = sampleProcessor.AnalyzeImage("../assets/sample1.png", 1);
+    Ruleset ruleset = sampleProcessor.AnalyzeImage("../assets/sample7.png", 4);
 
     generator.DebugInit(ruleset, 100, 100);
 }
