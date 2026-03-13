@@ -26,8 +26,12 @@ int Processor::ProcessKernel(int x, int y, int width, int height, int length, Co
             const int transformCoordY = GetModulusSpaceCoord(y + k, height - 1);
             const int transformCoordX = GetModulusSpaceCoord(x + l, width - 1);
             //printf("x %i y %i tx %i ty %i\n", x + l, y + k, transformCoordX, transformCoordY);
-            const Color color = colors[transformCoordY * height + transformCoordX];
-            kernel.emplace_back(((color.r) << 16) | (color.g << 8) | (color.b));
+            const Color color = colors[transformCoordY * width + transformCoordX];
+            const uint32_t compressedColor = (uint32_t(color.r) << 24) | (uint32_t(color.g) << 16) | (uint32_t(color.b) << 8) | uint32_t(color.a);
+            kernel.emplace_back(compressedColor);
+
+            //std::printf("%i %i color r %i g %i b %i a %i\n", transformCoordX, transformCoordY, color.r, color.g, color.b, color.a);
+
         }
     }
 
@@ -44,24 +48,10 @@ Ruleset Processor::AnalyzeImage(const std::string &imageFile, int length) {
     const int height = sampleImage.height;
     const int width = sampleImage.width;
 
-    //TODO: (1)
-    // const int compositeHeight = height + length - 1;
-    // const int compositeWidth = width + length - 1;
     const int compositeHeight = height;
     const int compositeWidth = width;
 
     Composite composite(length);
-    
-    // Get kernels
-    // TODO: (1)
-    // for (int i = -length + 1; i < height; ++i) {
-    //     for (int j = -length + 1; j < width; ++j) {
-    //         const int kernelId = ProcessKernel(j, i, width, height, length, colors, composite);
-    //         const int y = i + length - 1;
-    //         const int x = j + length - 1; 
-    //         compositeMap[y * compositeWidth + x] = kernelId;
-    //     }
-    // }
 
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
@@ -71,9 +61,9 @@ Ruleset Processor::AnalyzeImage(const std::string &imageFile, int length) {
     UnloadImage(sampleImage);
 
     // Get adjacent kernels
-    for (int i = 0; i < composite.GetNumKernels(); ++i) {
+    for (int i = 0; i < composite.GetNumberOfKernels(); ++i) {
         Kernel& primaryKernel = composite.GetKernel(i);
-        for (int j = i; j < composite.GetNumKernels(); ++j) {
+        for (int j = i; j < composite.GetNumberOfKernels(); ++j) {
             Kernel& secondaryKernel = composite.GetKernel(j);
             if (primaryKernel.CompareAdjacentOverlap(secondaryKernel, SOUTH, NORTH)) {
                 primaryKernel.AddAdjacency(j, NORTH);
@@ -104,10 +94,10 @@ Ruleset Processor::AnalyzeImage(const std::string &imageFile, int length) {
     // }
 
     // Translate to Ruleset
-    Ruleset ruleset(composite.GetNumKernels());
+    Ruleset ruleset(composite.GetNumberOfKernels());
     const std::vector<Kernel>& kernels = composite.GetKernels();
 
-    for (int i = 0; i < composite.GetNumKernels(); ++i) {
+    for (int i = 0; i < composite.GetNumberOfKernels(); ++i) {
         const Kernel& kernel = kernels[i];
         ruleset.SetTileFrequency(i, kernel.GetGlobalFrequency());
         ruleset.SetTileColor(i, kernel.leafs[0]);

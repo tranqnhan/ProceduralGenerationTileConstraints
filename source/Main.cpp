@@ -9,7 +9,7 @@
 #define WINDOW_N "Procedural Generation Constraint Satisfaction"
 
 
-uint32_t XorshiftRandom::randomState = 1234;
+uint32_t XorshiftRandom::randomState = 2222;
 
 
 Processor sampleProcessor;
@@ -20,7 +20,7 @@ void Init() {
     InitWindow(WINDOW_W, WINDOW_H, WINDOW_N);
     SetTargetFPS(60);
 
-    Ruleset ruleset = sampleProcessor.AnalyzeImage("../assets/sample2.png", 3);
+    Ruleset ruleset = sampleProcessor.AnalyzeImage("../assets/sample3.png", 3);
 
     generator.Init(ruleset, 40, 40);
 }
@@ -28,7 +28,7 @@ void Init() {
 
 // Main loop update
 void Update(float deltaTime) {
-    const int numIterations = 1;
+    const int numIterations = 10;
     for (int i = 0; i < numIterations; ++i) {
         generator.Next();
     }

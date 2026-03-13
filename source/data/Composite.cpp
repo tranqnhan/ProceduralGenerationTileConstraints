@@ -134,6 +134,6 @@ const std::vector<Kernel>& Composite::GetKernels() const {
 }
 
 
-const int Composite::GetNumKernels() const {
+const int Composite::GetNumberOfKernels() const {
     return this->kernels.size();
 }

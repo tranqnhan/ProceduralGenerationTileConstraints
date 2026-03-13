@@ -16,7 +16,7 @@ add_executable(ProceduralGenerationConstraintSatisfaction)
 target_include_directories(ProceduralGenerationConstraintSatisfaction PUBLIC include library/include)
 
 target_link_libraries(ProceduralGenerationConstraintSatisfaction raylib)
-target_compile_options(ProceduralGenerationConstraintSatisfaction PRIVATE -g)
+target_compile_options(ProceduralGenerationConstraintSatisfaction PRIVATE -O2)
 
 target_sources(ProceduralGenerationConstraintSatisfaction PRIVATE
     source/algorithm/Processor.cpp

@@ -58,7 +58,7 @@ public:
     int GetGlobalFrequency(int kernelId) const;
     const std::vector<Kernel>& GetKernels() const;
     Kernel& GetKernel(int kernelId);
-    const int GetNumKernels() const;
+    const int GetNumberOfKernels() const;
 
 private:
     std::vector<Kernel> kernels;
