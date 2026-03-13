@@ -29,7 +29,8 @@ bool Cell::Intersect(const std::vector<uint64_t>& otherPossibilities) {
     for (int i = 0; i < otherPossibilities.size(); ++i) {
         const uint64_t mask = this->tilePossibilities[i] & otherPossibilities[i];
         if (this->tilePossibilities[i] != mask) {
-            changedIndex = i;
+            this->tilePossibilities[i] = mask;
+            changedIndex = i  + 1;
             break;
         }
     }
@@ -44,8 +45,6 @@ bool Cell::Intersect(const std::vector<uint64_t>& otherPossibilities) {
             this->numberOfPossibleTiles += std::popcount(tileSet);
         }
     }
-
-    std::printf("changed index %i\n", changedIndex);
 
     return changedIndex >= 0;
 }
@@ -109,38 +108,6 @@ Generator::Generator() {
 }
 
 
-int Generator::GetEntropy(uint32_t constraints) const {
-    return std::popcount(constraints);
-}
-
-
-uint32_t Generator::AddConstraints(uint32_t oldContraints, uint32_t newConstraints) const {
-    return oldContraints & newConstraints;
-}
-
-
-uint32_t Generator::ResolveContraints(uint32_t contraints) {
-    int totalPossibilities = std::popcount(contraints);
-
-    if (totalPossibilities == 0) return 0;
-
-    int pick = XorshiftRandom::RandomInteger(1, totalPossibilities);
-
-    uint32_t mask = 0b1;
-
-    while (pick > 0) {     
-        if (mask & contraints) {
-            pick--;
-        }
-        mask <<= 1;
-    }
-
-    mask >>= 1;
-
-    return mask & contraints;
-}
-
-
 void Generator::Init(const Ruleset& rules, int width, int height) {
     this->ruleset = rules;
     this->width = width;
@@ -183,7 +150,7 @@ void Generator::Next() {
     }
 
     const int cellX = currentCoordinates % width;
-    const int cellY = currentCoordinates / height;
+    const int cellY = currentCoordinates / width;
 
     const Tile& tile = this->ruleset.GetTile(solvedTileId);
     const uint32_t compressedColor = tile.GetColor();
@@ -204,29 +171,26 @@ void Generator::Next() {
 
 
 void Generator::CompletePropagation(int beginCoordinates) {
-    std::queue<int> queueCoordinates;
-    ankerl::unordered_dense::set<int> propagatedCoordinates;
-    ankerl::unordered_dense::set<int> exploredCoordinates;
+    std::vector<int> queueCoordinates;
+    std::vector<bool> isInQueue(this->width * this->height);
 
-    queueCoordinates.push(beginCoordinates);
+    queueCoordinates.emplace_back(beginCoordinates);
     
     while (!queueCoordinates.empty()) {
-        const int currentCoordinates = queueCoordinates.front();
-        queueCoordinates.pop();
+        const int currentCoordinates = queueCoordinates.back();
+        queueCoordinates.pop_back();
+
+        isInQueue[currentCoordinates] = false;
 
         const Cell& currentCell = this->cells[currentCoordinates];
 
-        Propagate(currentCoordinates, queueCoordinates, propagatedCoordinates, exploredCoordinates);        
-        
-        propagatedCoordinates.erase(currentCoordinates);
-        
+        Propagate(currentCoordinates, queueCoordinates, isInQueue);
     }
 }
 
 void Generator::Propagate(int coordinates, 
-    std::queue<int>& queueCoordinates, 
-    ankerl::unordered_dense::set<int>& propagatedCoordinates, 
-    const ankerl::unordered_dense::set<int>& exploredCoordinates
+    std::vector<int>& queueCoordinates,
+    std::vector<bool>& isInQueue
 ) {
     const Cell& cell = this->cells[coordinates];
 
@@ -235,22 +199,22 @@ void Generator::Propagate(int coordinates,
 
     if (x + 1 < this->width) {
         const int adjacentCoordinates = coordinates + 1;
-        this->ExpandAdjacent(adjacentCoordinates, TileDirection::EAST, cell, queueCoordinates, propagatedCoordinates, exploredCoordinates);
+        this->ExpandAdjacent(adjacentCoordinates, TileDirection::EAST, cell, queueCoordinates, isInQueue);
     }
 
     if (x - 1 >= 0) {
         const int adjacentCoordinates = coordinates - 1;
-        this->ExpandAdjacent(adjacentCoordinates, TileDirection::WEST, cell, queueCoordinates, propagatedCoordinates, exploredCoordinates);
+        this->ExpandAdjacent(adjacentCoordinates, TileDirection::WEST, cell, queueCoordinates, isInQueue);
     }
 
     if (y + 1 < this->height) {
         const int adjacentCoordinates = coordinates + this->width;
-        this->ExpandAdjacent(adjacentCoordinates, TileDirection::SOUTH, cell, queueCoordinates, propagatedCoordinates, exploredCoordinates);
+        this->ExpandAdjacent(adjacentCoordinates, TileDirection::SOUTH, cell, queueCoordinates, isInQueue);
     }
 
     if (y - 1 >= 0) {
         const int adjacentCoordinates = coordinates - this->width;
-        this->ExpandAdjacent(adjacentCoordinates, TileDirection::NORTH, cell, queueCoordinates, propagatedCoordinates, exploredCoordinates);
+        this->ExpandAdjacent(adjacentCoordinates, TileDirection::NORTH, cell, queueCoordinates, isInQueue);
     }
 }
 
@@ -258,15 +222,11 @@ void Generator::Propagate(int coordinates,
 void Generator::ExpandAdjacent(int adjacentCoordinates, 
     TileDirection direction, 
     const Cell& cell, 
-    std::queue<int>& queueCoordinates, 
-    ankerl::unordered_dense::set<int>& propagatedCoordinates,
-    const ankerl::unordered_dense::set<int>& exploredCoordinates
+    std::vector<int>& queueCoordinates,
+    std::vector<bool>& isInQueue
 ) {
-    //if (propagatedCoordinates.find(adjacentCoordinates) != propagatedCoordinates.end()) return;
-    //if (exploredCoordinates.find(adjacentCoordinates) != exploredCoordinates.end()) return;
 
     Cell& adjacentCell = this->cells[adjacentCoordinates];
-
 
     if (adjacentCell.GetSolvedTile() >= -1) return;
 
@@ -311,14 +271,13 @@ void Generator::ExpandAdjacent(int adjacentCoordinates,
     }
 
     if (changes) {
-        if (propagatedCoordinates.find(adjacentCoordinates) == propagatedCoordinates.end()) {
-            queueCoordinates.push(adjacentCoordinates);
-            propagatedCoordinates.emplace(adjacentCoordinates);
+        if (!isInQueue[adjacentCoordinates]) {
+            queueCoordinates.emplace_back(adjacentCoordinates);
+            isInQueue[adjacentCoordinates] = true;
         }
     }
 
     const int entropy = adjacentCell.GetEntropy();
-    std::printf("cell %i entropy %i\n", adjacentCoordinates, entropy);
     this->cellEntropyPriorityQueue.Push(entropy, adjacentCoordinates);
 
 }

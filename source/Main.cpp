@@ -12,7 +12,6 @@
 uint32_t XorshiftRandom::randomState = 2222;
 
 
-Processor sampleProcessor;
 Generator generator;
 
 // Main loop initialization
@@ -20,9 +19,14 @@ void Init() {
     InitWindow(WINDOW_W, WINDOW_H, WINDOW_N);
     SetTargetFPS(60);
 
-    Ruleset ruleset = sampleProcessor.AnalyzeImage("../assets/sample3.png", 3);
 
-    generator.Init(ruleset, 40, 40);
+    Processor sampleProcessor;
+
+
+    Ruleset ruleset = sampleProcessor.AnalyzeImage("../assets/sample7.png", 3);
+
+
+    generator.Init(ruleset, 50, 100);
 }
 
 
@@ -52,7 +56,7 @@ void Render() {
     // Draw
     DrawTextureEx(generator.texture, Vector2{.x = 0, .y = 0}, 0, 8, WHITE);
     
-    //DrawFPS(0, 0);
+    DrawFPS(0, 0);
 
     EndDrawing();
 }

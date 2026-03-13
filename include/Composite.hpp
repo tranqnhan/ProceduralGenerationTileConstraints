@@ -20,32 +20,9 @@ public:
 
     void IncreaseGlobalFrequency();
     int GetGlobalFrequency() const;
-    void AddAdjacency(int adjacentKernelId, TileDirection direction);
-    bool CompareAdjacentOverlap(const Kernel& otherKernel, TileDirection otherDirection, TileDirection myDirection) const;
-    const std::vector<uint32_t>& GetAdjacentOverlap(TileDirection direction) const;
-
-    void Print() const {
-        std::printf("NORTH\n");
-        for (const auto& p : this->adjacentKernelFrequencies[NORTH]) {
-            std::printf("%i ", p.first);
-        }
-        std::printf("\n");
-        std::printf("SOUTH\n");
-        for (const auto& p : this->adjacentKernelFrequencies[SOUTH]) {
-            std::printf("%i ", p.first);
-        }
-        std::printf("\n");
-        std::printf("WEST\n");
-        for (const auto& p : this->adjacentKernelFrequencies[WEST]) {
-            std::printf("%i ", p.first);
-        }
-        std::printf("\n");
-        std::printf("EAST\n");
-        for (const auto& p : this->adjacentKernelFrequencies[EAST]) {
-            std::printf("%i ", p.first);
-        }
-        std::printf("\n");
-    }
+    void AddAdjacency(int adjacentKernelId, int direction);
+    bool CompareAdjacentOverlap(const Kernel& otherKernel, int direction, int opposeDirection) const;
+    const std::vector<uint32_t>& GetAdjacentOverlap(int direction) const;
 };
 
 

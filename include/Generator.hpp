@@ -41,21 +41,16 @@ public:
     std::vector<Cell> cells;
 
     Heap<int> cellEntropyPriorityQueue = Heap<int>([this](const int& entropyA, const int& entropyB) -> bool {        
-       return entropyA > entropyB;
+       return entropyA <= entropyB;
     }); // stores index of next cells to solve
-
-    // std::vector<std::pair<int, int>> debugOpenSet;
 
     void Init(const Ruleset& rules, int width, int height);
     void Next();
 
-    void CompletePropagation(int beginCoordinates);
-    void Propagate(int coordinates, std::queue<int>& queueCoordinates, ankerl::unordered_dense::set<int>& propagatedCoordinates, const ankerl::unordered_dense::set<int>& exploredCoordinates);
-    void ExpandAdjacent(int adjacentCoordinates, TileDirection direction, const Cell& cell, std::queue<int>& queueCoordinates, ankerl::unordered_dense::set<int>& propagatedCoordinates, const ankerl::unordered_dense::set<int>& exploredCoordinates);
     
 private:
-    int GetEntropy(uint32_t constraints) const;
-    uint32_t AddConstraints(uint32_t oldContraints, uint32_t newConstraints) const;
-    uint32_t ResolveContraints(uint32_t contraints); // Reduce contraints to 1 solution 
+    void CompletePropagation(int beginCoordinates);
+    void Propagate(int coordinates, std::vector<int>& queueCoordinates, std::vector<bool>& isInQueue);
+    void ExpandAdjacent(int adjacentCoordinates, TileDirection direction, const Cell& cell, std::vector<int>& queueCoordinate, std::vector<bool>& isInQueue);
 
 };

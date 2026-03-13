@@ -17,21 +17,18 @@ int Processor::GetModulusSpaceCoord(int coord, int maxCoord) const {
     return coord;
 }
 
-int Processor::ProcessKernel(int x, int y, int width, int height, int length, Color *colors, Composite& compositeTree) {
+int Processor::ProcessKernel(int x, int y, int width, int height, int kernelLength, Color *colors, Composite& compositeTree) {
     // Kernels
-    std::vector<uint32_t> kernel;
+    std::vector<uint32_t> kernel(kernelLength * kernelLength);
 
-    for (int k = 0; k < length; ++k) {
-        for (int l = 0; l < length; ++l) {
+    for (int k = 0; k < kernelLength; ++k) {
+        for (int l = 0; l < kernelLength; ++l) {
             const int transformCoordY = GetModulusSpaceCoord(y + k, height - 1);
             const int transformCoordX = GetModulusSpaceCoord(x + l, width - 1);
             //printf("x %i y %i tx %i ty %i\n", x + l, y + k, transformCoordX, transformCoordY);
             const Color color = colors[transformCoordY * width + transformCoordX];
             const uint32_t compressedColor = (uint32_t(color.r) << 24) | (uint32_t(color.g) << 16) | (uint32_t(color.b) << 8) | uint32_t(color.a);
             kernel.emplace_back(compressedColor);
-
-            //std::printf("%i %i color r %i g %i b %i a %i\n", transformCoordX, transformCoordY, color.r, color.g, color.b, color.a);
-
         }
     }
 
@@ -65,34 +62,17 @@ Ruleset Processor::AnalyzeImage(const std::string &imageFile, int length) {
         Kernel& primaryKernel = composite.GetKernel(i);
         for (int j = i; j < composite.GetNumberOfKernels(); ++j) {
             Kernel& secondaryKernel = composite.GetKernel(j);
-            if (primaryKernel.CompareAdjacentOverlap(secondaryKernel, SOUTH, NORTH)) {
-                primaryKernel.AddAdjacency(j, NORTH);
-                secondaryKernel.AddAdjacency(i, SOUTH);
-            }
-            
-            if (primaryKernel.CompareAdjacentOverlap(secondaryKernel, NORTH, SOUTH)) {
-                primaryKernel.AddAdjacency(j, SOUTH);
-                secondaryKernel.AddAdjacency(i, NORTH);
-            }
-            
-            if (primaryKernel.CompareAdjacentOverlap(secondaryKernel, EAST, WEST)) {
-                primaryKernel.AddAdjacency(j, WEST);
-                secondaryKernel.AddAdjacency(i, EAST);
-            }
 
-            if (primaryKernel.CompareAdjacentOverlap(secondaryKernel, WEST, EAST)) {
-                primaryKernel.AddAdjacency(j, EAST);
-                secondaryKernel.AddAdjacency(i, WEST);
+            for (int direction = 0; direction < TileDirection::NUM_DIRECTIONS; ++direction) {
+                const int opposeDirection = (~direction) & 0b11;
+                if (primaryKernel.CompareAdjacentOverlap(secondaryKernel, direction, opposeDirection)) {
+                    primaryKernel.AddAdjacency(j, direction);
+                    secondaryKernel.AddAdjacency(i, opposeDirection);
+                }
             }
         }
     }
-
-    // for (int i = 0; i < composite.GetNumKernels(); ++i) {
-    //     std::printf("tile %i \n", i);
-    //     const Kernel& primaryKernel = composite.GetKernel(i);
-    //     primaryKernel.Print();
-    // }
-
+    
     // Translate to Ruleset
     Ruleset ruleset(composite.GetNumberOfKernels());
     const std::vector<Kernel>& kernels = composite.GetKernels();

@@ -10,7 +10,7 @@
 template<typename T>
 class Heap {
 public:
-    Heap(std::function<bool(const T&, const T&)> compare);
+    Heap(std::function<bool(const T&, const T&)> constraint);
 
     bool Push(T item, int unique_id);
 
@@ -37,9 +37,10 @@ private:
 
     unsigned int size;
 
-    // compare: a is before b in the heap
-    // return true if swap a and b, return false if no swap
-    std::function<bool(const T& a, const T& b)> compare;
+    // constraint: a is before b in the heap
+    // return true if contraint that a is before b is satisfied
+    // return false if doesn't (need to swap)
+    std::function<bool(const T& a, const T& b)> constraint;
 
     void Swap(unsigned int hida, unsigned int hidb);
 
@@ -49,9 +50,9 @@ private:
 
 
 template<typename T>
-Heap<T>::Heap(std::function<bool(const T&, const T&)> compare) {
+Heap<T>::Heap(std::function<bool(const T&, const T&)> constraint) {
     this->size = 0;
-    this->compare = compare;
+    this->constraint = constraint;
 }
 
 
@@ -59,7 +60,7 @@ template<typename T>
 bool Heap<T>::Push(T item, int uniqueId) {
     auto id2hidIterator = this->id2hid.find(uniqueId);
     if (id2hidIterator != this->id2hid.end()) {
-        if (this->compare(this->heap[id2hidIterator->second], item)) {
+        if (!this->constraint(this->heap[id2hidIterator->second], item)) {
             this->heap[id2hidIterator->second] = std::move(item);
             Up(uniqueId);
             return true;
@@ -80,7 +81,7 @@ bool Heap<T>::Push(T item, int uniqueId) {
     unsigned int cindex = this->size;
     unsigned int pindex = (cindex - 1) / 2;
     
-    while (cindex != 0 && this->compare(this->heap[pindex], this->heap[cindex])) {
+    while (cindex != 0 && !this->constraint(this->heap[pindex], this->heap[cindex])) {
         this->Swap(cindex, pindex);
         cindex = pindex;
         pindex = (cindex - 1) / 2;
@@ -111,10 +112,10 @@ void Heap<T>::Pop() {
         rindex = 2 * pindex + 2;
 
         cindex = lindex;
-        if (rindex < this->size && this->compare(this->heap[lindex], this->heap[rindex])) {
+        if (rindex < this->size && !this->constraint(this->heap[lindex], this->heap[rindex])) {
             cindex = rindex;
         }
-        if (this->compare(this->heap[pindex], this->heap[cindex])) {
+        if (!this->constraint(this->heap[pindex], this->heap[cindex])) {
             this->Swap(pindex, cindex);
             pindex = cindex;
         } else {
@@ -137,7 +138,7 @@ template<typename T>
 void Heap<T>::Up(int unique_id) {
     unsigned int cindex = id2hid.find(unique_id)->second;
     unsigned int pindex = (cindex - 1) / 2;
-    while (cindex != 0 && this->compare(this->heap[pindex], this->heap[cindex])) {
+    while (cindex != 0 && !this->constraint(this->heap[pindex], this->heap[cindex])) {
         this->Swap(pindex, cindex);
         cindex = pindex;
         pindex = (cindex - 1) / 2;

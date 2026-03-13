@@ -19,7 +19,7 @@ int Kernel::GetGlobalFrequency() const {
 }
 
 
-void Kernel::AddAdjacency(int adjacentKernelId, TileDirection direction) {
+void Kernel::AddAdjacency(int adjacentKernelId, int direction) {
     const auto& iteAdjacentKernel = this->adjacentKernelFrequencies[direction].find(adjacentKernelId);
     if (iteAdjacentKernel == this->adjacentKernelFrequencies[direction].end()) {
         this->adjacentKernelFrequencies[direction].emplace(adjacentKernelId, 1);
@@ -29,9 +29,9 @@ void Kernel::AddAdjacency(int adjacentKernelId, TileDirection direction) {
 }
 
 
-bool Kernel::CompareAdjacentOverlap(const Kernel& otherKernel, TileDirection otherDirection, TileDirection myDirection) const {
-    const std::vector<uint32_t>& otherLeafs = otherKernel.GetAdjacentOverlap(otherDirection);
-    const std::vector<uint32_t>& myLeafs = this->overlaps[myDirection];
+bool Kernel::CompareAdjacentOverlap(const Kernel& otherKernel, int direction, int opposeDirection) const {
+    const std::vector<uint32_t>& otherLeafs = otherKernel.GetAdjacentOverlap(opposeDirection);
+    const std::vector<uint32_t>& myLeafs = this->overlaps[direction];
 
     for (int i = 0; i < myLeafs.size(); ++i) {
         if (otherLeafs[i] != myLeafs[i]) {
@@ -42,7 +42,7 @@ bool Kernel::CompareAdjacentOverlap(const Kernel& otherKernel, TileDirection oth
 }
 
 
-const std::vector<uint32_t>&  Kernel::GetAdjacentOverlap(TileDirection direction) const {
+const std::vector<uint32_t>&  Kernel::GetAdjacentOverlap(int direction) const {
     return this->overlaps[direction];
 }
 
