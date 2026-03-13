@@ -1,7 +1,5 @@
 #include <cstdint>
 #include <bit>
-#include <cstdio>
-#include <queue>
 #include <vector>
 
 #include "Heap.hpp"
@@ -18,7 +16,7 @@ Cell::Cell(const Ruleset& ruleset) {
     lastTileSet <<= (64 - (ruleset.GetNumberOfTiles() % 64));
 
     this->globalFrequency = 0;
-    this->solvedTileId = -2;
+    this->resultTileId = -2;
     this->numberOfPossibleTiles = ruleset.GetNumberOfTiles();
 }
 
@@ -50,41 +48,31 @@ bool Cell::Intersect(const std::vector<uint64_t>& otherPossibilities) {
 }
 
 
-int Cell::Collapse() {
-    this->solvedTileId = -1;
+int Cell::Collapse(const Ruleset& ruleset) {
+    this->resultTileId = -1;
 
-    if (this->numberOfPossibleTiles == 0) return this->solvedTileId;
+    if (this->numberOfPossibleTiles == 0) return this->resultTileId;
 
-    std::vector<int> tilesCount(this->tilePossibilities.size());
-    for (int i = 0; i < this->tilePossibilities.size(); ++i) {
-        const int tileCount = std::popcount(this->tilePossibilities[i]);
-        tilesCount[i] = tileCount;
+    const std::vector<int> tileIds = this->GetTileIds();
+
+    std::vector<int> globalFrequencies(tileIds.size());
+
+    int sumGlobalFrequencies = 0;
+    for (int i = 0; i < tileIds.size(); ++i) {
+        sumGlobalFrequencies += ruleset.GetTileFrequency(tileIds[i]);
+        globalFrequencies[i] = sumGlobalFrequencies;
     }
 
-    int result = XorshiftRandom::RandomInteger(1, this->numberOfPossibleTiles);
+    int result = XorshiftRandom::RandomInteger(0, sumGlobalFrequencies);
     
-    for (int i = 0; i < tilesCount.size(); ++i) {
-        if (result > tilesCount[i]) {
-            result -= tilesCount[i];
-        } else {
-            int tileCountInSet = 0;
-            uint64_t tileSet = this->tilePossibilities[i];
-            const uint64_t mask = uint64_t(1) << 63;
-            while (result > 0) {
-                if (mask & tileSet) {
-                    result--;
-                }
-                tileSet <<= 1;
-                tileCountInSet++;
-            }
-            tileCountInSet--;
-            this->solvedTileId = i * 64 + tileCountInSet;
+    for (int i = 0; i < globalFrequencies.size(); ++i) {
+        if (result <= globalFrequencies[i]) {
+            this->resultTileId = tileIds[i];
             break;
         }
     }
 
-
-    return this->solvedTileId;
+    return this->resultTileId;
 }
 
 
@@ -99,7 +87,34 @@ int Cell::GetEntropy() const {
 
 
 int Cell::GetSolvedTile() const {
-    return this->solvedTileId;
+    return this->resultTileId;
+}
+
+
+std::vector<int> Cell::GetTileIds() const {
+    std::vector<int> result;
+
+    uint64_t mask = uint64_t(1) << 63;
+
+    for (int i = 0; i < this->tilePossibilities.size(); i++) {
+        if (this->tilePossibilities[i] == 0) continue;
+
+        const uint64_t& tileSet = this->tilePossibilities[i];
+        
+        mask = uint64_t(1) << 63;
+        
+        for (int j = 0; j < 64; ++j) {
+            if (mask & tileSet) {
+                const int tileId = i * 64 + j;
+                result.emplace_back(tileId);
+            }
+
+            mask >>= 1;
+        }
+
+    }
+
+    return result;
 }
 
 
@@ -128,7 +143,6 @@ void Generator::Init(const Ruleset& rules, int width, int height) {
 
 void Generator::Next() {
     if (this->cellEntropyPriorityQueue.GetSize() <= 0) {
-        //std::printf("END!\n");
         return;
     }
 
@@ -136,7 +150,7 @@ void Generator::Next() {
     this->cellEntropyPriorityQueue.Pop();
 
     //std::printf("coords %i cell index %i\n", coords, cellIndex);
-    const int solvedTileId = this->cells[currentCoordinates].Collapse();
+    const int solvedTileId = this->cells[currentCoordinates].Collapse(this->ruleset);
     //std::printf("Solved Tile! %i coords %i\n", solvedTileId, currentCoordinates);
 
     if (solvedTileId == -1) {
@@ -237,28 +251,15 @@ void Generator::ExpandAdjacent(int adjacentCoordinates,
     if (cellSolvedTiled < 0) {
         std::vector<uint64_t> adjacentTilesUnion(int(this->ruleset.GetNumberOfTiles() / 64) + 1, 0);
 
-        constexpr uint64_t mask = uint64_t(1) << 63;
-        const std::vector<uint64_t>& tilePossibilities = cell.GetTilePossibilities();
+        const std::vector<int> tileIds = cell.GetTileIds();
+        
+        for (const int tileId : tileIds) {
+            const Tile& tile = this->ruleset.GetTile(tileId);
+            const std::vector<uint64_t>& adjacentTiles = tile.GetAdjacentTiles(direction);
 
-        for (int i = 0; i < tilePossibilities.size(); i++) {
-            if (tilePossibilities[i] == 0) continue;
-            uint64_t tileSet = tilePossibilities[i];
-            //std::printf("tileSt %lb\n", tileSet);
-            for (int j = 0; j < 64; ++j) {
-                if (mask & tileSet) {
-                    const int tileId = i * 64 + j;
-                                        
-                    const Tile& tile = this->ruleset.GetTile(tileId);
-                    const std::vector<uint64_t>& adjacentTiles = tile.GetAdjacentTiles(direction);
-
-                    for (int k = 0; k < adjacentTiles.size(); ++k) {
-                        adjacentTilesUnion[k] |= adjacentTiles[k];
-                    }
-                }
-
-                tileSet <<= 1;
+            for (int k = 0; k < adjacentTiles.size(); ++k) {
+                adjacentTilesUnion[k] |= adjacentTiles[k];
             }
-
         }
 
         changes = adjacentCell.Intersect(adjacentTilesUnion);
@@ -275,9 +276,8 @@ void Generator::ExpandAdjacent(int adjacentCoordinates,
             queueCoordinates.emplace_back(adjacentCoordinates);
             isInQueue[adjacentCoordinates] = true;
         }
+
+        const int entropy = adjacentCell.GetEntropy();
+        this->cellEntropyPriorityQueue.Push(entropy, adjacentCoordinates);
     }
-
-    const int entropy = adjacentCell.GetEntropy();
-    this->cellEntropyPriorityQueue.Push(entropy, adjacentCoordinates);
-
 }

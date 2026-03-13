@@ -1,3 +1,6 @@
+#include <chrono>
+#include <iostream>
+
 #include "raylib.h"
 
 #include "XorshiftRandom.hpp"
@@ -22,11 +25,15 @@ void Init() {
 
     Processor sampleProcessor;
 
+    auto start = std::chrono::steady_clock::now(); 
 
-    Ruleset ruleset = sampleProcessor.AnalyzeImage("../assets/sample7.png", 3);
+    Ruleset ruleset = sampleProcessor.AnalyzeImage("../assets/sample4.png", 3);
 
-
-    generator.Init(ruleset, 50, 100);
+    auto stop = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    std::cout << "Analyze image time: " << duration.count() << " microseconds" << std::endl;
+    
+    generator.Init(ruleset, 100, 100);
 }
 
 

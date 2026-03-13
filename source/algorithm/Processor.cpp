@@ -28,11 +28,11 @@ int Processor::ProcessKernel(int x, int y, int width, int height, int kernelLeng
             //printf("x %i y %i tx %i ty %i\n", x + l, y + k, transformCoordX, transformCoordY);
             const Color color = colors[transformCoordY * width + transformCoordX];
             const uint32_t compressedColor = (uint32_t(color.r) << 24) | (uint32_t(color.g) << 16) | (uint32_t(color.b) << 8) | uint32_t(color.a);
-            kernel.emplace_back(compressedColor);
+            kernel[k * kernelLength + l] = compressedColor;
         }
     }
 
-    return compositeTree.AppendKernel(std::move(kernel));
+    return compositeTree.NextKernel(std::move(kernel));
 }
 
 
@@ -79,7 +79,7 @@ Ruleset Processor::AnalyzeImage(const std::string &imageFile, int length) {
 
     for (int i = 0; i < composite.GetNumberOfKernels(); ++i) {
         const Kernel& kernel = kernels[i];
-        ruleset.SetTileFrequency(i, kernel.GetGlobalFrequency());
+        ruleset.SetTileFrequency(i, kernel.globalFrequency);
         ruleset.SetTileColor(i, kernel.leafs[0]);
         for (int d = 0; d < TileDirection::NUM_DIRECTIONS; ++d) {
             const int adjacentSize = kernel.adjacentKernelFrequencies[d].size();

@@ -48,6 +48,8 @@ public:
     const std::vector<Tile>& GetTiles() const;
     void SetTileFrequency(int tileId, int globalFrequency);
     void SetTileColor(int tileId, uint32_t color);
+    int GetTileFrequency(int tileId) const;
+
 private:
     std::vector<Tile> tiles;
 };

@@ -1,21 +1,11 @@
+#include <cstdint>
+
 #include "Composite.hpp"
 #include "Ruleset.hpp"
-#include <cstdint>
-#include <sys/types.h>
 
 Kernel::Kernel(std::vector<uint32_t>&& leafs){
     this->leafs = std::move(leafs);
     this->globalFrequency = 1;
-}
-
-
-void Kernel::IncreaseGlobalFrequency(){
-    this->globalFrequency++;
-}
-
-
-int Kernel::GetGlobalFrequency() const {
-    return this->globalFrequency;
 }
 
 
@@ -47,8 +37,8 @@ const std::vector<uint32_t>&  Kernel::GetAdjacentOverlap(int direction) const {
 }
 
 
-Composite::Composite(int size) {
-    this->size = size;
+Composite::Composite(int kernelLength) {
+    this->kernelLength = kernelLength;
 }
 
 
@@ -57,16 +47,9 @@ Kernel& Composite::GetKernel(int kernelId) {
 }
 
 int Composite::AppendKernel(std::vector<uint32_t>&& leafs) {
-    const int kernelIndex = IsKernelExists(leafs);
-    
-    if (kernelIndex >= 0) {
-        this->kernels[kernelIndex].IncreaseGlobalFrequency();
-        return kernelIndex;
-    }
-
     Kernel kernel(std::move(leafs));
 
-    const int overlapSize = this->size * (this->size - 1);
+    const int overlapSize = this->kernelLength * (this->kernelLength - 1);
     int j;
 
     // North
@@ -79,25 +62,25 @@ int Composite::AppendKernel(std::vector<uint32_t>&& leafs) {
     // South
     j = 0;
     kernel.overlaps[TileDirection::SOUTH].resize(overlapSize);
-    for (int i = this->size; i < kernel.leafs.size(); ++i) {
+    for (int i = this->kernelLength; i < kernel.leafs.size(); ++i) {
         kernel.overlaps[TileDirection::SOUTH][j++] = kernel.leafs[i];
     }
 
     // East
     j = 0;
     kernel.overlaps[TileDirection::EAST].resize(overlapSize);
-    for (int i = 0; i < this->size; ++i) {
-        for (int k = 1; k < this->size; k++) {
-            kernel.overlaps[TileDirection::EAST][j++] = kernel.leafs[i * this->size + k];
+    for (int i = 0; i < this->kernelLength; ++i) {
+        for (int k = 1; k < this->kernelLength; k++) {
+            kernel.overlaps[TileDirection::EAST][j++] = kernel.leafs[i * this->kernelLength + k];
         }
     }
 
     // West
     j = 0;
     kernel.overlaps[TileDirection::WEST].resize(overlapSize);
-    for (int i = 0; i < this->size; ++i) {
-        for (int k = 0; k < this->size - 1; k++) {
-            kernel.overlaps[TileDirection::WEST][j++] = kernel.leafs[i * this->size + k];
+    for (int i = 0; i < this->kernelLength; ++i) {
+        for (int k = 0; k < this->kernelLength - 1; k++) {
+            kernel.overlaps[TileDirection::WEST][j++] = kernel.leafs[i * this->kernelLength + k];
         }
     }
 
@@ -107,25 +90,29 @@ int Composite::AppendKernel(std::vector<uint32_t>&& leafs) {
 }
 
 
-int Composite::GetGlobalFrequency(int kernelIndex) const {
-    return kernels[kernelIndex].GetGlobalFrequency();
-}
+int Composite::NextKernel(std::vector<uint32_t>&& leafs) {
+    int j;
+    for (j = 0; j < kernels.size(); ++j) {
+        int i;
+        for (i = 0; i < leafs.size(); ++i) {
+            if (leafs[i] != kernels[j].leafs[i]) break;
+        } 
 
-
-int Composite::IsKernelExists(const std::vector<uint32_t>& kernel) {
-    for (int i = 0; i < kernels.size(); ++i) {
-        int j;
-        for (j = 0; j < kernels[i].leafs.size(); ++j) {
-            if (kernels[i].leafs[j] != kernel[j]) {
-                break;
-            }
-        }
-        if (j == kernels[i].leafs.size()) {
-            return i;
+        if (i == leafs.size()) {
+            break;
         }
     }
 
-    return -1;
+    int resultKernelId;
+
+    if (j == kernels.size()) {
+        resultKernelId = this->AppendKernel(std::move(leafs));
+    } else {
+        resultKernelId = j;
+        this->kernels[resultKernelId].globalFrequency++;
+    }
+
+    return resultKernelId;
 }
 
 

@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <vector>
-#include <queue>
 
 #include "raylib.h"
 
@@ -14,16 +13,17 @@ public:
     Cell(const Ruleset& ruleset);
 
     bool Intersect(const std::vector<uint64_t>& otherPossibilities);
-    int Collapse();
+    int Collapse(const Ruleset& ruleset);
     int GetEntropy() const;
     int GetSolvedTile() const;
 
     const std::vector<uint64_t>& GetTilePossibilities() const;
+    std::vector<int> GetTileIds() const;
 
 private:
     std::vector<uint64_t> tilePossibilities;
     int globalFrequency;
-    int solvedTileId;
+    int resultTileId;
     int numberOfPossibleTiles;
 };
 

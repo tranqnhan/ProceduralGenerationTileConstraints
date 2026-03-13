@@ -1,5 +1,4 @@
 #include <cstdint>
-#include <cstdio>
 
 #include "Ruleset.hpp"
 
@@ -72,6 +71,11 @@ void Ruleset::SetTileColor(int tileId, uint32_t color) {
 
 void Ruleset::SetTileFrequency(int tileId, int globalFrequency) {
     this->tiles[tileId].SetGlobalFrequency(globalFrequency);
+}
+
+
+int Ruleset::GetTileFrequency(int tileId) const {
+    return this->tiles[tileId].GetGlobalFrequency();
 }
 
 
