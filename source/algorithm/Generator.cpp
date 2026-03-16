@@ -1,22 +1,25 @@
 #include <cstdint>
-#include <bit>
 #include <vector>
 
-#include "Heap.hpp"
-#include "XorshiftRandom.hpp"
-#include "raylib.h"
+#include <raylib.h>
 
+#include "BitMath.hpp"
+#include "Heap.hpp"
+#include "Program.hpp"
+#include "XorshiftRandom.hpp"
+#include "CompressColor.hpp"
 #include "Ruleset.hpp"
 #include "Generator.hpp"
 
 
 Cell::Cell(const Ruleset& ruleset) {
-    this->tilePossibilities.resize(int(ruleset.GetNumberOfTiles() / 64) + 1, ~uint64_t(0));
-    uint64_t& lastTileSet = this->tilePossibilities.back();
-    lastTileSet <<= (64 - (ruleset.GetNumberOfTiles() % 64));
+    this->tilePossibilities.resize(ruleset.GetTile64Sets(), ~uint64_t(0));
+
+    uint64_t& tileSet = this->tilePossibilities.back();
+    tileSet <<= 64 - (ruleset.GetNumberOfTiles() % 64);
 
     this->globalFrequency = 0;
-    this->resultTileId = -2;
+    this->resultTileId = SpecialCellType::Unexplored;
     this->numberOfPossibleTiles = ruleset.GetNumberOfTiles();
 }
 
@@ -28,7 +31,7 @@ bool Cell::Intersect(const std::vector<uint64_t>& otherPossibilities) {
         const uint64_t mask = this->tilePossibilities[i] & otherPossibilities[i];
         if (this->tilePossibilities[i] != mask) {
             this->tilePossibilities[i] = mask;
-            changedIndex = i  + 1;
+            changedIndex = i + 1;
             break;
         }
     }
@@ -49,11 +52,11 @@ bool Cell::Intersect(const std::vector<uint64_t>& otherPossibilities) {
 
 
 int Cell::Collapse(const Ruleset& ruleset) {
-    this->resultTileId = -1;
+    this->resultTileId = SpecialCellType::NoSolution;
 
     if (this->numberOfPossibleTiles == 0) return this->resultTileId;
 
-    const std::vector<int> tileIds = this->GetTileIds();
+    const std::vector<int> tileIds = BitMath::GetSetPositions(this->tilePossibilities);
 
     std::vector<int> globalFrequencies(tileIds.size());
 
@@ -86,97 +89,62 @@ int Cell::GetEntropy() const {
 }
 
 
-int Cell::GetSolvedTile() const {
+int Cell::GetResultTile() const {
     return this->resultTileId;
 }
 
 
-std::vector<int> Cell::GetTileIds() const {
-    std::vector<int> result;
-
-    uint64_t mask = uint64_t(1) << 63;
-
-    for (int i = 0; i < this->tilePossibilities.size(); i++) {
-        if (this->tilePossibilities[i] == 0) continue;
-
-        const uint64_t& tileSet = this->tilePossibilities[i];
-        
-        mask = uint64_t(1) << 63;
-        
-        for (int j = 0; j < 64; ++j) {
-            if (mask & tileSet) {
-                const int tileId = i * 64 + j;
-                result.emplace_back(tileId);
-            }
-
-            mask >>= 1;
-        }
-
-    }
-
-    return result;
-}
-
-
 Generator::Generator() {
-     //std::time(0);
+    this->failed = false;
 }
 
 
-void Generator::Init(const Ruleset& rules, int width, int height) {
+void Generator::Init(const Ruleset& rules, int chunkWidth, int chunkHeight, int numChunkWidth, int numChunkHeight) {
     this->ruleset = rules;
-    this->width = width;
-    this->height = height;
+    this->width = chunkWidth * numChunkWidth;
+    this->height = chunkHeight * numChunkHeight;
 
-    this->image = GenImageColor(width, height, BLACK);
-    this->texture = LoadTextureFromImage(image);
+    this->image = GenImageColor(this->width, this->height, BLACK);
+    this->texture = LoadTextureFromImage(this->image);
 
     const Cell initialCell( this->ruleset);
 
-    this->cells = std::vector<Cell>(width * height, initialCell);
+    this->cells = std::vector<Cell>(this->width * this->height, initialCell);
 
-    int initialCoords = XorshiftRandom::RandomInteger(0, width * height - 1);
+    const int initialCoords = XorshiftRandom::RandomInteger(0, this->width * this->height - 1);
 
     this->cellEntropyPriorityQueue.Push(0, initialCoords);
 }
 
 
 void Generator::Next() {
-    if (this->cellEntropyPriorityQueue.GetSize() <= 0) {
+    if (this->cellEntropyPriorityQueue.GetSize() <= 0 || this->failed) {
         return;
     }
 
     const int currentCoordinates = this->cellEntropyPriorityQueue.TopItemID();
     this->cellEntropyPriorityQueue.Pop();
 
-    //std::printf("coords %i cell index %i\n", coords, cellIndex);
-    const int solvedTileId = this->cells[currentCoordinates].Collapse(this->ruleset);
-    //std::printf("Solved Tile! %i coords %i\n", solvedTileId, currentCoordinates);
+    const int resultTileId = this->cells[currentCoordinates].Collapse(this->ruleset);
 
-    if (solvedTileId == -1) {
+    if (resultTileId == SpecialCellType::NoSolution) {
         const int cellX = currentCoordinates % width;
         const int cellY = currentCoordinates / height;
 
         ImageDrawPixel(&image, cellX, cellY, RED);
         UpdateTexture(texture, image.data);
-        //std::printf("No possibilities on cell %i %i\n", cellX, cellY);
+        this->failed = true;
+
         return;
     }
 
     const int cellX = currentCoordinates % width;
     const int cellY = currentCoordinates / width;
 
-    const Tile& tile = this->ruleset.GetTile(solvedTileId);
-    const uint32_t compressedColor = tile.GetColor();
-    const Color color = Color{
-        .r = (unsigned char)((compressedColor & 0xFF000000) >> 24), 
-        .g = (unsigned char)((compressedColor & 0x00FF0000) >> 16),
-        .b = (unsigned char)((compressedColor & 0x0000FF00) >> 8),
-        .a = (unsigned char)((compressedColor & 0x000000FF))
-    };
+    const Tile& tile = this->ruleset.GetTile(resultTileId);
+    const uint32_t compressedColor = tile.GetColor()[0];
 
-
-    ImageDrawPixel(&image, cellX, cellY, color);
+    ImageDrawPixel(&image, cellX, cellY, CompressColor::Decompress(compressedColor));
     UpdateTexture(texture, image.data);
 
     // Propagation
@@ -190,7 +158,7 @@ void Generator::CompletePropagation(int beginCoordinates) {
 
     queueCoordinates.emplace_back(beginCoordinates);
     
-    while (!queueCoordinates.empty()) {
+    while (!queueCoordinates.empty() && !this->failed) {
         const int currentCoordinates = queueCoordinates.back();
         queueCoordinates.pop_back();
 
@@ -201,6 +169,7 @@ void Generator::CompletePropagation(int beginCoordinates) {
         Propagate(currentCoordinates, queueCoordinates, isInQueue);
     }
 }
+
 
 void Generator::Propagate(int coordinates, 
     std::vector<int>& queueCoordinates,
@@ -242,16 +211,16 @@ void Generator::ExpandAdjacent(int adjacentCoordinates,
 
     Cell& adjacentCell = this->cells[adjacentCoordinates];
 
-    if (adjacentCell.GetSolvedTile() >= -1) return;
+    if (adjacentCell.GetResultTile() >= SpecialCellType::NoSolution) return;
 
-    const int cellSolvedTiled = cell.GetSolvedTile();
+    const int cellSolvedTiled = cell.GetResultTile();
 
     bool changes;
 
     if (cellSolvedTiled < 0) {
-        std::vector<uint64_t> adjacentTilesUnion(int(this->ruleset.GetNumberOfTiles() / 64) + 1, 0);
+        std::vector<uint64_t> adjacentTilesUnion(this->ruleset.GetTile64Sets(), 0);
 
-        const std::vector<int> tileIds = cell.GetTileIds();
+        const std::vector<int> tileIds = BitMath::GetSetPositions(cell.GetTilePossibilities());
         
         for (const int tileId : tileIds) {
             const Tile& tile = this->ruleset.GetTile(tileId);
@@ -276,8 +245,53 @@ void Generator::ExpandAdjacent(int adjacentCoordinates,
             queueCoordinates.emplace_back(adjacentCoordinates);
             isInQueue[adjacentCoordinates] = true;
         }
-
-        const int entropy = adjacentCell.GetEntropy();
-        this->cellEntropyPriorityQueue.Push(entropy, adjacentCoordinates);
     }
+
+    const int entropy = adjacentCell.GetEntropy();
+    
+    if (entropy == 0) {
+        this->failed = true;
+        return;
+    }
+    
+    this->cellEntropyPriorityQueue.Push(entropy, adjacentCoordinates);
+
+
+}
+
+
+int Generator::GetCellTileId(int coordinates) const {
+    if (coordinates >= this->cells.size()) return SpecialCellType::Unexplored;
+    return this->cells[coordinates].GetResultTile();
+}
+
+
+const Cell& Generator::GetCell(int coordinates) const {
+    return this->cells[coordinates];
+}
+
+
+void Generator::Render() {
+    DrawTextureEx(this->texture, Vector2{.x = 0, .y = 0}, 0, PIXEL_SCALE, WHITE);
+}
+
+
+const Ruleset& Generator::GetRuleset() const {
+    return this->ruleset;
+}
+
+
+int Generator::GetWidth() const {
+    return this->width;
+}
+
+
+int Generator::GetHeight() const {
+    return this->height;
+}
+
+
+Generator::~Generator() {
+    UnloadImage(this->image);
+    UnloadTexture(this->texture);
 }

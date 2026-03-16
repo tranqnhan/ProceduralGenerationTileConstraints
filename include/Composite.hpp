@@ -33,7 +33,7 @@ public:
     // Returns index of kernel. If kernel does not exist, create one and return new index
     int NextKernel(std::vector<uint32_t>&& leafs); 
 
-    const std::vector<Kernel>& GetKernels() const;
+    std::vector<Kernel>& GetKernels();
     Kernel& GetKernel(int kernelId);
     const int GetNumberOfKernels() const;
 

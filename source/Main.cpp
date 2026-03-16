@@ -1,39 +1,52 @@
 #include <chrono>
 #include <iostream>
 
-#include "raylib.h"
+#include <raylib.h>
 
 #include "XorshiftRandom.hpp"
 #include "Processor.hpp"
 #include "Generator.hpp"
+#include "TileDisplay.hpp"
 
-#define WINDOW_W 800
-#define WINDOW_H 800
-#define WINDOW_N "Procedural Generation Constraint Satisfaction"
+#include "Program.hpp"
 
+uint32_t XorshiftRandom::randomState = 1000;
 
-uint32_t XorshiftRandom::randomState = 2222;
+// Tile generator
+Generator tileGenerator;
 
-
-Generator generator;
+// UI
+TileDisplay uiTileDisplay;
 
 // Main loop initialization
 void Init() {
     InitWindow(WINDOW_W, WINDOW_H, WINDOW_N);
     SetTargetFPS(60);
+    HideCursor();
 
 
     Processor sampleProcessor;
 
     auto start = std::chrono::steady_clock::now(); 
 
-    Ruleset ruleset = sampleProcessor.AnalyzeImage("../assets/sample4.png", 3);
+    Ruleset ruleset = sampleProcessor.AnalyzeImage("../assets/sample11.png", EXPAND);
 
     auto stop = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     std::cout << "Analyze image time: " << duration.count() << " microseconds" << std::endl;
     
-    generator.Init(ruleset, 100, 100);
+    tileGenerator.Init(ruleset, CHUNK_WIDTH, CHUNK_HEIGHT, NUM_CHUNKS_WIDTH, NUM_CHUNKS_HEIGHT);
+    uiTileDisplay.Init();
+
+}
+
+
+// Main loop input
+void Input() {
+    if (IsKeyDown(KEY_SPACE)) {
+        tileGenerator.Next();
+    }
+    uiTileDisplay.Input();
 }
 
 
@@ -41,16 +54,10 @@ void Init() {
 void Update(float deltaTime) {
     const int numIterations = 10;
     for (int i = 0; i < numIterations; ++i) {
-        generator.Next();
+        tileGenerator.Next();
     }
-}
 
-
-// Main loop input
-void Input() {
-    if (IsKeyPressed(KEY_SPACE)) {
-        generator.Next();
-    }
+    uiTileDisplay.Update(tileGenerator);
 }
 
 
@@ -59,18 +66,19 @@ void Render() {
     BeginDrawing();
     ClearBackground(BLACK);
 
+    tileGenerator.Render();
 
-    // Draw
-    DrawTextureEx(generator.texture, Vector2{.x = 0, .y = 0}, 0, 8, WHITE);
-    
-    DrawFPS(0, 0);
+    // UI Draw
+    uiTileDisplay.Render();
+
+   // DrawFPS(0, 0);
 
     EndDrawing();
 }
 
 
 void OnClose() {
-    //UnloadTexture(generator.debugTexture);
+    
 }
 
 // Main loop

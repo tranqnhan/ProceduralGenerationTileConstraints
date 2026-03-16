@@ -70,7 +70,7 @@ int Composite::AppendKernel(std::vector<uint32_t>&& leafs) {
     j = 0;
     kernel.overlaps[TileDirection::EAST].resize(overlapSize);
     for (int i = 0; i < this->kernelLength; ++i) {
-        for (int k = 1; k < this->kernelLength; k++) {
+        for (int k = 1; k < this->kernelLength; ++k) {
             kernel.overlaps[TileDirection::EAST][j++] = kernel.leafs[i * this->kernelLength + k];
         }
     }
@@ -79,7 +79,7 @@ int Composite::AppendKernel(std::vector<uint32_t>&& leafs) {
     j = 0;
     kernel.overlaps[TileDirection::WEST].resize(overlapSize);
     for (int i = 0; i < this->kernelLength; ++i) {
-        for (int k = 0; k < this->kernelLength - 1; k++) {
+        for (int k = 0; k < this->kernelLength - 1; ++k) {
             kernel.overlaps[TileDirection::WEST][j++] = kernel.leafs[i * this->kernelLength + k];
         }
     }
@@ -116,7 +116,7 @@ int Composite::NextKernel(std::vector<uint32_t>&& leafs) {
 }
 
 
-const std::vector<Kernel>& Composite::GetKernels() const {
+std::vector<Kernel>& Composite::GetKernels() {
     return this->kernels;
 }
 

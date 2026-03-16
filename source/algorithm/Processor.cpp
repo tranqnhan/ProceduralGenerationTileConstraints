@@ -1,10 +1,10 @@
 #include <vector>
 
+#include <raylib.h>
+
+#include "CompressColor.hpp"
 #include "Ruleset.hpp"
-#include "raylib.h"
-
 #include "Composite.hpp"
-
 #include "Processor.hpp"
 
 int Processor::GetModulusSpaceCoord(int coord, int maxCoord) const {
@@ -27,7 +27,7 @@ int Processor::ProcessKernel(int x, int y, int width, int height, int kernelLeng
             const int transformCoordX = GetModulusSpaceCoord(x + l, width - 1);
             //printf("x %i y %i tx %i ty %i\n", x + l, y + k, transformCoordX, transformCoordY);
             const Color color = colors[transformCoordY * width + transformCoordX];
-            const uint32_t compressedColor = (uint32_t(color.r) << 24) | (uint32_t(color.g) << 16) | (uint32_t(color.b) << 8) | uint32_t(color.a);
+            const uint32_t compressedColor = CompressColor::Compress(color);
             kernel[k * kernelLength + l] = compressedColor;
         }
     }
@@ -75,12 +75,12 @@ Ruleset Processor::AnalyzeImage(const std::string &imageFile, int length) {
     
     // Translate to Ruleset
     Ruleset ruleset(composite.GetNumberOfKernels());
-    const std::vector<Kernel>& kernels = composite.GetKernels();
+    std::vector<Kernel>& kernels = composite.GetKernels();
 
     for (int i = 0; i < composite.GetNumberOfKernels(); ++i) {
-        const Kernel& kernel = kernels[i];
+        Kernel& kernel = kernels[i];
         ruleset.SetTileFrequency(i, kernel.globalFrequency);
-        ruleset.SetTileColor(i, kernel.leafs[0]);
+        ruleset.SetTileColor(i, std::move(kernel.leafs));
         for (int d = 0; d < TileDirection::NUM_DIRECTIONS; ++d) {
             const int adjacentSize = kernel.adjacentKernelFrequencies[d].size();
             std::vector<int> adjacentTileIds(adjacentSize);
@@ -95,53 +95,9 @@ Ruleset Processor::AnalyzeImage(const std::string &imageFile, int length) {
         }
     }
 
-    std::printf("num tiles %i\n", ruleset.GetNumberOfTiles());
+    std::printf("-- Number of Tiles %i\n", ruleset.GetNumberOfTiles());
     
     //DebugGenerateTexture(composite, width, height, length);
 
     return ruleset;
-}
-
-
-void Processor::DebugGenerateTexture(const Composite& compositeTree, int width, int height, int length) {
-    //Debugging
-    std::printf("length %i\n", length);
-
-    const int debugImageWidth = width * length;
-    const int debugImageHeight = height * length;
-    
-    debugImage = GenImageColor(debugImageWidth, debugImageHeight, WHITE);
-    Color *debugColors = (Color *) debugImage.data;
-    
-    const std::vector<Kernel>& kernels = compositeTree.GetKernels();
-
-    int atX = 0;
-    int atY = 0;
-
-    for (int k = 0; k < kernels.size(); ++k) {
-        for (int i = 0; i < length; ++i) {
-            for (int j = 0; j < length; ++j) {
-                const uint32_t colorId = kernels[k].leafs[i * length + j];
-                const Color color = Color{
-                    .r = (unsigned char)((colorId & 0xFF0000) >> 16), 
-                    .g = (unsigned char)((colorId & 0xFF00) >> 8),
-                    .b = (unsigned char)((colorId & 0xFF)),
-                    .a = 255
-                };
-
-                const int x = j + atX;
-                const int y = i + atY;
-                debugColors[y * debugImageWidth + x] = color;
-            }
-        }
-
-        atX += length;
-        if (atX >= debugImageWidth) {
-            atX = 0;
-            atY += length;
-        }
-    }
-
-    debugTexture = LoadTextureFromImage(debugImage);
-    UnloadImage(debugImage);
 }

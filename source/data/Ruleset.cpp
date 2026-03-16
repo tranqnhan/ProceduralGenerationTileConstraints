@@ -4,23 +4,22 @@
 
 
 Tile::Tile() {
-    this->color = 0;
     this->globalFrequency = 0;
 }
 
 
-Tile::Tile(uint32_t color, int globalFrequency, int numberOfTiles) {
-    this->color = color;
+Tile::Tile(std::vector<uint32_t>&& color, int globalFrequency) {
+    this->color = std::move(color);
     this->globalFrequency = globalFrequency;
 }
 
 
-void Tile::SetColor(uint32_t color) {
-    this->color = color;
+void Tile::SetColor(std::vector<uint32_t>&& color) {
+    this->color = std::move(color);
 }
 
 
-uint32_t Tile::GetColor() const {
+const std::vector<uint32_t>& Tile::GetColor() const {
     return this->color;
 }
 
@@ -51,6 +50,8 @@ Ruleset::Ruleset() {
 
 Ruleset::Ruleset(int numTiles) {
     this->tiles.resize(numTiles);
+
+    this->numTile64Sets = int(numTiles / 64) + (numTiles % 64 > 0 ? 1 : 0);
 }
 
 
@@ -64,8 +65,8 @@ const std::vector<Tile>& Ruleset::GetTiles() const {
 }
 
 
-void Ruleset::SetTileColor(int tileId, uint32_t color) {
-    this->tiles[tileId].SetColor(color);
+void Ruleset::SetTileColor(int tileId, std::vector<uint32_t>&& color) {
+    this->tiles[tileId].SetColor(std::move(color));
 }
 
 
@@ -80,18 +81,16 @@ int Ruleset::GetTileFrequency(int tileId) const {
 
 
 void Ruleset::SetAdjacentTiles(int tileId, int direction, const std::vector<int>& adjacentTileIds, const std::vector<int>& adjacentTileFrequencies) {
-
-    std::vector<uint64_t> adjacentTiles(int(this->GetNumberOfTiles() / 64) + 1);
+    std::vector<uint64_t> adjacentTiles(this->numTile64Sets);
 
     for (const int tileId : adjacentTileIds) {
         const int valueIndex = int(tileId / 64);
-        const int bitIndex = tileId - (valueIndex * 64);
+        const int bitIndex = tileId % 64;
         adjacentTiles[valueIndex] |= (uint64_t(1) << (63 - bitIndex));
     } 
     
     this->tiles[tileId].SetAdjacentTiles(std::move(adjacentTiles), direction);
 }
-
 
 const Tile& Ruleset::GetTile(int tileId) const {
     return this->tiles[tileId];
@@ -102,6 +101,12 @@ const std::vector<uint64_t>& Ruleset::GetAdjacentTiles(int tileId, int direction
     return this->tiles[tileId].GetAdjacentTiles(direction);
 }
 
-const uint32_t Ruleset::GetTileColor(int tileId) const {
+
+const std::vector<uint32_t>& Ruleset::GetTileColor(int tileId) const {
     return this->tiles[tileId].GetColor();
+}
+
+
+int Ruleset::GetTile64Sets() const {
+    return this->numTile64Sets;
 }
