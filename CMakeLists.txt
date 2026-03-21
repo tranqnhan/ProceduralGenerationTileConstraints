@@ -22,6 +22,8 @@ target_sources(ProceduralGenerationConstraintSatisfaction PRIVATE
     source/algorithm/Processor.cpp
     source/algorithm/Generator.cpp
     source/algorithm/Cell.cpp
+    source/data/Tile.cpp
+    source/data/Kernel.cpp
     source/data/Ruleset.cpp
     source/data/Composite.cpp
     source/ui/TileDisplay.cpp

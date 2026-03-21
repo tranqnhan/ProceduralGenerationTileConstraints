@@ -10,7 +10,7 @@
 
 #include "Program.hpp"
 
-uint32_t XorshiftRandom::randomState = 1000;
+uint32_t XorshiftRandom::randomState = 1234;
 
 // Tile generator
 Generator tileGenerator;

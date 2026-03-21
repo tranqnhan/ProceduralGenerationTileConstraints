@@ -36,6 +36,8 @@ void Generator::Init(const Ruleset& rules, int regionWidthAsPixels, int regionHe
     this->cells = std::vector<Cell>(this->worldWidthAsPixels * this->worldHeightAsPixels, initialCell);
     this->isRegionsGenerated = std::vector<bool>(this->worldWidthAsRegions * this->worldHeightAsRegions, false);
 
+    this->cellEntropyPriorityQueue.Clear();
+
     this->generationState = GenerationState::RegionOnStandby;
 }
 
@@ -211,6 +213,7 @@ void Generator::Propagate(int coordinates,
 ) {
     const Cell& cell = this->cells[coordinates];
 
+    // Todo: possible optimization here
     const int x = coordinates % this->worldWidthAsPixels;
     const int y = coordinates / this->worldWidthAsPixels;
 
@@ -252,6 +255,7 @@ void Generator::ExpandAdjacent(int adjacentCoordinates,
 
     if (adjacentCell.GetResultTile() >= SpecialCellType::NoSolution) return;
 
+    // TODO: Possible optimization here 
     const int cellSolvedTiled = cell.GetResultTile();
 
     bool changes;
@@ -259,6 +263,7 @@ void Generator::ExpandAdjacent(int adjacentCoordinates,
     if (cellSolvedTiled < 0) {
         std::vector<uint64_t> adjacentTilesUnion(this->ruleset.GetTile64Sets(), 0);
 
+        // TODO: Possible optimization here (cell.GetTilePossibilities)
         const std::vector<int> tileIds = BitMath::GetSetPositions(cell.GetTilePossibilities());
         
         for (const int tileId : tileIds) {

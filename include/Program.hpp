@@ -6,7 +6,7 @@
 
 #define PIXEL_SCALE 4
 #define EXPAND 3
-#define CHUNK_WIDTH 32
-#define CHUNK_HEIGHT 32
-#define NUM_CHUNKS_WIDTH 5
-#define NUM_CHUNKS_HEIGHT 5
+#define CHUNK_WIDTH 160
+#define CHUNK_HEIGHT 160
+#define NUM_CHUNKS_WIDTH 1
+#define NUM_CHUNKS_HEIGHT 1
