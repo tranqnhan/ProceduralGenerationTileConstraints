@@ -3,6 +3,7 @@
 
 #include <raylib.h>
 
+#include "Cursor.hpp"
 #include "XorshiftRandom.hpp"
 #include "Processor.hpp"
 #include "Generator.hpp"
@@ -16,7 +17,9 @@ uint32_t XorshiftRandom::randomState = 1234;
 Generator tileGenerator;
 
 // UI
+Cursor uiCursor;
 TileDisplay uiTileDisplay;
+
 
 // Main loop initialization
 void Init() {
@@ -29,15 +32,16 @@ void Init() {
 
     auto start = std::chrono::steady_clock::now(); 
 
-    Ruleset ruleset = sampleProcessor.AnalyzeImage("../assets/sample11.png", EXPAND);
+    Ruleset ruleset = sampleProcessor.AnalyzeImage("../assets/sample9.png", EXPAND);
 
     auto stop = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
     std::cout << "Analyze image time: " << duration.count() << " microseconds" << std::endl;
     
     tileGenerator.Init(ruleset, CHUNK_WIDTH, CHUNK_HEIGHT, NUM_CHUNKS_WIDTH, NUM_CHUNKS_HEIGHT);
+    
     uiTileDisplay.Init();
-
+    uiCursor.Init();
 }
 
 
@@ -47,6 +51,7 @@ void Input() {
         tileGenerator.Next();
     }
     uiTileDisplay.Input();
+    uiCursor.Input();
 }
 
 
@@ -58,6 +63,7 @@ void Update(float deltaTime) {
     }
 
     uiTileDisplay.Update(tileGenerator);
+    uiCursor.Update();
 }
 
 
@@ -70,16 +76,13 @@ void Render() {
 
     // UI Draw
     uiTileDisplay.Render();
+    uiCursor.Render();
 
    // DrawFPS(0, 0);
 
     EndDrawing();
 }
 
-
-void OnClose() {
-    
-}
 
 // Main loop
 int main(void) {
@@ -90,8 +93,6 @@ int main(void) {
         Update(GetFrameTime());
         Render();
     }
-
-    OnClose();
 
     CloseWindow();
     return 0;

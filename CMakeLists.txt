@@ -27,6 +27,7 @@ target_sources(ProceduralGenerationConstraintSatisfaction PRIVATE
     source/data/Ruleset.cpp
     source/data/Composite.cpp
     source/ui/TileDisplay.cpp
+    source/ui/Cursor.cpp
     source/helper/CompressColor.cpp
     source/helper/BitMath.cpp
     source/Main.cpp
