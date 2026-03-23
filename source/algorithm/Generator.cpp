@@ -4,7 +4,6 @@
 
 #include <raylib.h>
 
-#include "BitMath.hpp"
 #include "Heap.hpp"
 #include "Program.hpp"
 #include "XorshiftRandom.hpp"
@@ -207,7 +206,8 @@ void Generator::Propagate(int beginCoordinates) {
 }
 
 
-void Generator::Expand(int coordinates, 
+void Generator::Expand(
+    int coordinates, 
     std::vector<int>& queueCoordinates,
     std::vector<bool>& isInQueue
 ) {
@@ -222,31 +222,34 @@ void Generator::Expand(int coordinates,
     const int yPixelMinBound = this->yRegionOfWorld * this->regionHeightAsPixels;
     const int yPixelMaxBound = yPixelMinBound + this->regionHeightAsPixels;
 
+    const std::vector<int> tilePossibilitiesIds = cell.GetTilePossibilitiesAsIds();
+
     if (x + 1 < xPixelMaxBound) {
         const int adjacentCoordinates = coordinates + 1;
-        this->ContraintAdjacent(adjacentCoordinates, TileDirection::EAST, cell, queueCoordinates, isInQueue);
+        this->ContraintAdjacent(adjacentCoordinates, TileDirection::EAST, tilePossibilitiesIds, queueCoordinates, isInQueue);
     }
 
     if (x - 1 >= xPixelMinBound) {
         const int adjacentCoordinates = coordinates - 1;
-        this->ContraintAdjacent(adjacentCoordinates, TileDirection::WEST, cell, queueCoordinates, isInQueue);
+        this->ContraintAdjacent(adjacentCoordinates, TileDirection::WEST, tilePossibilitiesIds, queueCoordinates, isInQueue);
     }
 
     if (y + 1 < yPixelMaxBound) {
         const int adjacentCoordinates = coordinates + this->worldWidthAsPixels;
-        this->ContraintAdjacent(adjacentCoordinates, TileDirection::SOUTH, cell, queueCoordinates, isInQueue);
+        this->ContraintAdjacent(adjacentCoordinates, TileDirection::SOUTH, tilePossibilitiesIds, queueCoordinates, isInQueue);
     }
 
     if (y - 1 >= yPixelMinBound) {
         const int adjacentCoordinates = coordinates - this->worldWidthAsPixels;
-        this->ContraintAdjacent(adjacentCoordinates, TileDirection::NORTH, cell, queueCoordinates, isInQueue);
+        this->ContraintAdjacent(adjacentCoordinates, TileDirection::NORTH, tilePossibilitiesIds, queueCoordinates, isInQueue);
     }
 }
 
 
-void Generator::ContraintAdjacent(int adjacentCoordinates, 
-    TileDirection direction, 
-    const Cell& cell, 
+void Generator::ContraintAdjacent(
+    int adjacentCoordinates, 
+    TileDirection direction,
+    const std::vector<int>& tilePossibilitiesIds,
     std::vector<int>& queueCoordinates,
     std::vector<bool>& isInQueue
 ) {
@@ -255,35 +258,22 @@ void Generator::ContraintAdjacent(int adjacentCoordinates,
 
     if (adjacentCell.GetResultTile() >= SpecialCellType::NoSolution) return;
 
-    // TODO: Possible optimization here 
-    const int cellSolvedTiled = cell.GetResultTile();
-
     bool changes;
 
-    if (cellSolvedTiled < 0) {
-        std::vector<uint64_t> adjacentTilesUnion(this->ruleset.GetTile64Sets(), 0);
+    std::vector<uint64_t> adjacentTilesUnion(this->ruleset.GetTile64Sets(), 0);
 
-        // TODO: Possible optimization here (cell.GetTilePossibilities)
-        const std::vector<int> tileIds = BitMath::GetSetPositions(cell.GetTilePossibilities());
-        
-        for (const int tileId : tileIds) {
-            const Tile& tile = this->ruleset.GetTile(tileId);
-            const std::vector<uint64_t>& adjacentTiles = tile.GetAdjacentTiles(direction);
+    for (const int tileId : tilePossibilitiesIds) {
+        const Tile& tile = this->ruleset.GetTile(tileId);
+        const std::vector<uint64_t>& adjacentTiles = tile.GetAdjacentTiles(direction);
 
-            for (int k = 0; k < adjacentTiles.size(); ++k) {
-                adjacentTilesUnion[k] |= adjacentTiles[k];
-            }
+        for (int k = 0; k < adjacentTiles.size(); ++k) {
+            adjacentTilesUnion[k] |= adjacentTiles[k];
         }
-
-        changes = adjacentCell.Intersect(adjacentTilesUnion);
-        
-    } else {
-
-        const Tile& tile = ruleset.GetTile(cellSolvedTiled);
-        changes = adjacentCell.Intersect(tile.GetAdjacentTiles(direction));
-    
     }
 
+    changes = adjacentCell.Intersect(adjacentTilesUnion);
+    
+    
     if (changes) {
         if (!isInQueue[adjacentCoordinates]) {
             queueCoordinates.emplace_back(adjacentCoordinates);

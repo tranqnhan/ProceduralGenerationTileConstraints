@@ -69,7 +69,7 @@ void TileDisplay::Update(const Generator& generator) {
             this->uiSelectTileId = tileId;
         } else {    
             const Cell& cell = generator.GetCell(coords);
-            const std::vector<int>& cellTileIds = BitMath::GetSetPositions(cell.GetTilePossibilities());
+            const std::vector<int>& cellTileIds = cell.GetTilePossibilitiesAsIds();
 
             if (cellTileIds.size() > 0) {
                 const int nextTileId = cellTileIds[this->uiSelectSameCellCount % cellTileIds.size()];

@@ -62,7 +62,7 @@ private:
 
     void Propagate(int beginCoordinates);
     void Expand(int coordinates, std::vector<int>& queueCoordinates, std::vector<bool>& isInQueue);
-    void ContraintAdjacent(int adjacentCoordinates, TileDirection direction, const Cell& cell, std::vector<int>& queueCoordinate, std::vector<bool>& isInQueue);
+    void ContraintAdjacent(int adjacentCoordinates, TileDirection direction, const std::vector<int>& tilePossibilitiesIds, std::vector<int>& queueCoordinate, std::vector<bool>& isInQueue);
     void BuildCurrentRegion();
     void BuildInitialRegion();
     void StartNextRegion();

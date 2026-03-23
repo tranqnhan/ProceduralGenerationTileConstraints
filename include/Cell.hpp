@@ -16,7 +16,7 @@ public:
     int Collapse(const Ruleset& ruleset);
     int GetEntropy() const;
     int GetResultTile() const;
-    const std::vector<uint64_t>& GetTilePossibilities() const;
+    std::vector<int> GetTilePossibilitiesAsIds() const;
     void Clear(const Ruleset& ruleset);
 
 private:

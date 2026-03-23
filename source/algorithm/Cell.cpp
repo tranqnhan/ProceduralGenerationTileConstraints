@@ -77,8 +77,11 @@ int Cell::Collapse(const Ruleset& ruleset) {
 }
 
 
-const std::vector<uint64_t>& Cell::GetTilePossibilities() const {
-    return this->tilePossibilities;
+std::vector<int> Cell::GetTilePossibilitiesAsIds() const {
+    if (this->resultTileId >= 0) {
+        return std::vector<int> { this->resultTileId };
+    }
+    return BitMath::GetSetPositions(this->tilePossibilities);
 }
 
     
