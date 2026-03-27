@@ -11,7 +11,7 @@ std::vector<std::unique_ptr<Scene>> SceneCoordinator::scenes;
 void SceneCoordinator::Init() {
     SceneCoordinator::scenes.resize(SceneId::NUM_SCENES);
     SceneCoordinator::AddScene(TextureSample, std::make_unique<SceneTextureSample>());
-    //SceneCoordinator::AddScene(Generation, std::make_unique<SceneGeneration>());
+    SceneCoordinator::AddScene(Generation, std::make_unique<SceneGeneration>());
 
     SceneCoordinator::currentSceneId = TextureSample;
     SceneCoordinator::scenes[SceneCoordinator::currentSceneId]->OnEnter();

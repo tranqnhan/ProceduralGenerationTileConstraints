@@ -46,34 +46,38 @@ int Cell::Collapse(const Ruleset& ruleset) {
 
     this->resultTileId = SpecialCellType::NoSolution;
 
+    // if (this->numberOfPossibleTiles == 0) return this->resultTileId;
+
+    // const std::vector<int> tileIds = BitMath::GetSetPositions(this->tilePossibilities);
+
+    // int result = XorshiftRandom::RandomInteger(0, tileIds.size() - 1);
+
+    // this->resultTileId = tileIds[result];
+
+    // return this->resultTileId;
+
     if (this->numberOfPossibleTiles == 0) return this->resultTileId;
 
     const std::vector<int> tileIds = BitMath::GetSetPositions(this->tilePossibilities);
 
-    int result = XorshiftRandom::RandomInteger(0, tileIds.size() - 1);
+    std::vector<int> globalFrequencies(tileIds.size());
 
-    this->resultTileId = tileIds[result];
+    int sumGlobalFrequencies = 0;
+    for (int i = 0; i < tileIds.size(); ++i) {
+        sumGlobalFrequencies += ruleset.GetTileFrequency(tileIds[i]);
+        globalFrequencies[i] = sumGlobalFrequencies;
+    }
+
+    int result = XorshiftRandom::RandomInteger(0, sumGlobalFrequencies);
+    
+    for (int i = 0; i < globalFrequencies.size(); ++i) {
+        if (result <= globalFrequencies[i]) {
+            this->resultTileId = tileIds[i];
+            break;
+        }
+    }
 
     return this->resultTileId;
-
-    // std::vector<int> globalFrequencies(tileIds.size());
-
-    // int sumGlobalFrequencies = 0;
-    // for (int i = 0; i < tileIds.size(); ++i) {
-    //     sumGlobalFrequencies += ruleset.GetTileFrequency(tileIds[i]);
-    //     globalFrequencies[i] = sumGlobalFrequencies;
-    // }
-
-    // int result = XorshiftRandom::RandomInteger(0, sumGlobalFrequencies);
-    
-    // for (int i = 0; i < globalFrequencies.size(); ++i) {
-    //     if (result <= globalFrequencies[i]) {
-    //         this->resultTileId = tileIds[i];
-    //         break;
-    //     }
-    // }
-
-    // return this->resultTileId;
 }
 
 

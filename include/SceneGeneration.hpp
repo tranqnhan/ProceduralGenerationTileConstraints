@@ -3,8 +3,6 @@
 #include "Scene.hpp"
 
 #include "Generator.hpp"
-#include "Cursor.hpp"
-#include "TileDisplay.hpp"
 
 class SceneGeneration : public Scene {
 public:
@@ -16,8 +14,5 @@ public:
 
 private:
     Generator tileGenerator;
-
-    Cursor uiCursor;
-    TileDisplay uiTileDisplay;
 
 };

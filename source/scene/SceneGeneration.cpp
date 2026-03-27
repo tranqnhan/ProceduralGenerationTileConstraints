@@ -1,6 +1,9 @@
-#include "Processor.hpp"
+#include <raylib.h>
+
 #include "Program.hpp"
+#include "Processor.hpp"
 #include "Ruleset.hpp"
+#include "SceneCoordinator.hpp"
 #include "SceneSharedData.hpp"
 #include "SceneGeneration.hpp"
 
@@ -14,16 +17,17 @@ void SceneGeneration::OnEnter() {
         EXPAND);
 
     this->tileGenerator.Init(ruleset, CHUNK_WIDTH, CHUNK_HEIGHT, NUM_CHUNKS_WIDTH, NUM_CHUNKS_HEIGHT);
-    this->uiTileDisplay.Init();
-    this->uiCursor.Init();
 }
 
 void SceneGeneration::Input() {
+    if (IsKeyDown(KEY_BACKSPACE)) {
+        SceneCoordinator::ChangeScene(SceneId::TextureSample);
+        return;
+    }
+
     if (IsKeyDown(KEY_SPACE)) {
         this->tileGenerator.Next();
     }
-    this->uiTileDisplay.Input();
-    this->uiCursor.Input();
 }
 
 void SceneGeneration::Update() {
@@ -31,16 +35,10 @@ void SceneGeneration::Update() {
     for (int i = 0; i < numIterations; ++i) {
         tileGenerator.Next();
     }
-
-    uiTileDisplay.Update(tileGenerator);
-    uiCursor.Update();
 }
 
 void SceneGeneration::Render() {
     tileGenerator.Render();
-
-    uiTileDisplay.Render();
-    uiCursor.Render();
 }
 
 

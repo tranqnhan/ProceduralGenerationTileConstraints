@@ -6,5 +6,5 @@
 Image SceneSharedData::sampleImage;
 
 void SceneSharedData::Init() {
-    SceneSharedData::sampleImage = GenImageColor(SAMPLE_WIDTH, SAMPLE_HEIGHT, WHITE);
+    SceneSharedData::sampleImage = GenImageColor(SAMPLE_WIDTH, SAMPLE_HEIGHT, BLACK);
 }

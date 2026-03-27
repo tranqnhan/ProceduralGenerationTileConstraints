@@ -1,8 +1,9 @@
 #pragma once
 
-#include "raylib.h"
+#include <raylib.h>
 
 #include "Scene.hpp"
+#include "Cursor.hpp"
 
 class SceneTextureSample : public Scene {
 public:
@@ -17,4 +18,14 @@ public:
 private:
     Texture2D sampleTexture;
     Color colors[10];
+
+    int currentColorId;
+    int pointerX;
+    int pointerY;
+    bool isDraw;
+    bool isFill;
+
+    Cursor uiCursor;
+
+    void Fill();
 };
