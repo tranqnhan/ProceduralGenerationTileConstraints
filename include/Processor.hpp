@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-
 #include <raylib.h>
 
 #include "Composite.hpp"

@@ -6,7 +6,7 @@
 
 #include "ankerl/unordered_dense.h"
 
-#include "Ruleset.hpp"
+#include "Tile.hpp"
 
 class Kernel {
 public:
