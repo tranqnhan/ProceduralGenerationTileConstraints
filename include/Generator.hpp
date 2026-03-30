@@ -1,6 +1,8 @@
 #pragma once
 
 #include <mutex>
+#include <stop_token>
+#include <thread>
 #include <vector>
 
 #include <raylib.h>
@@ -23,7 +25,7 @@ public:
 
     void Init(const Ruleset& rules, int chunkWidth, int chunkHeight, int numChunkWidth, int numChunkHeight);
     void FullGenerateAsync();
-    void FullGenerate();
+    void StopGenerate();
     void Next();
 
     int GetCellTileId(int coordinates) const;
@@ -58,7 +60,8 @@ private:
     std::vector<int> regionsFailures;
     int currentRegionId;
 
-    bool isCompleted;
+    std::jthread generationThread;
+    std::atomic<bool> isCompleted;
 
     Heap<int> cellEntropyPriorityQueue = Heap<int>([this](const int& entropyA, const int& entropyB) -> bool {        
        return entropyA <= entropyB;
@@ -76,4 +79,6 @@ private:
 
     void BacktrackRegions();
     void ResetRegion(int xRegion, int yRegion);
+
+    void FullGenerate(std::stop_token stopToken);
 };

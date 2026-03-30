@@ -158,15 +158,20 @@ void Generator::StartNextRegion() {
 
 
 void Generator::FullGenerateAsync() {
-    std::thread t(&Generator::FullGenerate, this);
-    t.detach();
+    this->generationThread = std::jthread([this](std::stop_token st){ this->FullGenerate(st); });
 }
 
 
-void Generator::FullGenerate() {
-    while (!this->isCompleted) {
+void Generator::FullGenerate(std::stop_token st) {
+    while (!this->isCompleted.load() && !st.stop_requested()) {
         this->Next();
     }
+}
+
+
+void Generator::StopGenerate() {
+    this->generationThread.request_stop();
+    this->generationThread.join();
 }
 
 
@@ -391,7 +396,7 @@ int Generator::GetHeight() const {
 
 
 bool Generator::IsCompleted() const {
-    return this->isCompleted;
+    return this->isCompleted.load();
 }
 
 

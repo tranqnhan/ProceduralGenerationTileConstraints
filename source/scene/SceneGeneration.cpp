@@ -44,5 +44,5 @@ void SceneGeneration::Render() {
 
 
 void SceneGeneration::OnExit() {
-
+    this->tileGenerator.StopGenerate();
 }
