@@ -5,24 +5,24 @@
 #include "SceneTextureSample.hpp"
 #include "SceneCoordinator.hpp"
 #include "SceneSharedData.hpp"
-
+#include "ColorPallete.hpp"
 
 SceneTextureSample::SceneTextureSample() {
     this->sampleTexture = LoadTextureFromImage(SceneSharedData::sampleImage);
 
     constexpr int numColors = 10;
 
-    unsigned int colorHex[numColors] = {
-        0x222034ff,
-        0x639bffff,
-        0x76428aff,
-        0xfbf236ff,
-        0x6abe30ff,
-        0x37946eff,
-        0xdf7126ff,
-        0xac3232ff,
-        0x8a6f30ff,
-        0xffffffff,
+    constexpr unsigned int colorHex[numColors] = {
+        COLOR_0,
+        COLOR_1,
+        COLOR_2,
+        COLOR_3,
+        COLOR_4,
+        COLOR_5,
+        COLOR_6,
+        COLOR_7,
+        COLOR_8,
+        COLOR_9,
     };
 
     for (int i = 0; i < numColors; ++i) {
