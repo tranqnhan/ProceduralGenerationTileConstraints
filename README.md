@@ -8,3 +8,5 @@ Based on Model Synthesis by Paul Merrell and Wave Function Collapse by Maxim Gum
 Web: https://proceduralgenerationtileconstraints.pages.dev/
 
 ![Example generation](pgcs.gif)
+
+![Example generation 2](pgcs2.gif)
