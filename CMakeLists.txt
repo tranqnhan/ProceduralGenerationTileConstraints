@@ -8,6 +8,8 @@ project(PGCS LANGUAGES C CXX)
 # emcmake cmake -B build-web -S . -DRAYLIB_PATH=$HOME/libs/raylib
 # cmake --build build-web
 
+# cmake -B build -S . -DRAYLIB_PATH=$HOME/Documents/raylib -DEMSCRIPTEN_PATH=$HOME/.cache/emscripten/sysroot -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
 # cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
 # ------------------ Compile ------------------ #
@@ -56,6 +58,11 @@ target_sources(PGCS PRIVATE
 
 if(EMSCRIPTEN)
     message("Setting flags for web build...")
+
+    target_include_directories(PGCS PUBLIC include library/include ${EMSCRIPTEN_PATH}/include)
+
+    target_sources(PGCS PRIVATE source/ui/Controls.cpp)
+
     set_target_properties(PGCS PROPERTIES
         LINK_FLAGS "--preload-file ../assets"
     )
