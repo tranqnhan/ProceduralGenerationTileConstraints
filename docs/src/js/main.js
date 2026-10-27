@@ -40,13 +40,23 @@ function switchScene() {
 
 
 function onChangeScene() {
-    Module.ccall('ChangeScene', 
-        null, 
-        [], 
-        []);
-
+    Module.ccall('ChangeScene', null, [], []);
     switchScene();
 }
 
+function toggleFill(is_fill) {
+    if (is_fill) {
+        document.getElementById("fillTool").style.background = "var(--color-red)";
+        document.getElementById("pencilTool").style.background = "var(--color-white)";
+    } else {
+        document.getElementById("pencilTool").style.background = "var(--color-red)";
+        document.getElementById("fillTool").style.background = "var(--color-white)";
+    }
+    Module.ccall('ToggleFill', null, ['boolean'], [is_fill]);
+}
+
+toggleFill(false);
+
 window.onSwatchClick = onSwatchClick;
 window.onChangeScene = onChangeScene;
+window.toggleFill = toggleFill;

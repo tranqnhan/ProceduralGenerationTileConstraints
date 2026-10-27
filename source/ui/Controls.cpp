@@ -11,18 +11,23 @@ Controls CONTROLS;
 extern "C" {
 
     EMSCRIPTEN_KEEPALIVE
-    void SelectColor(int color)
-    {
+    void SelectColor(int color) {
         if (CONTROLS.onColorSelected) {
             CONTROLS.onColorSelected(color);
         }
     }
 
     EMSCRIPTEN_KEEPALIVE
-    void ChangeScene()
-    {
+    void ChangeScene() {
         if (CONTROLS.onChangeScene) {
             CONTROLS.onChangeScene();
+        }
+    }
+
+    EMSCRIPTEN_KEEPALIVE
+    void ToggleFill(bool isFill) {
+        if (CONTROLS.onToggleFill) {
+            CONTROLS.onToggleFill(isFill);
         }
     }
 

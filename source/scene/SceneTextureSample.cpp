@@ -17,8 +17,10 @@ SceneTextureSample::SceneTextureSample() {
 
     this->currentColorId = 0;
 
-    this->isDraw = false;
+    this->isPencil = false;
     this->isFill = false;
+
+    this->toggleTool = false;
 
     this->uiCursor.Init();
 
@@ -28,6 +30,10 @@ SceneTextureSample::SceneTextureSample() {
         if (value < 0) value = 0;
         
         this->currentColorId = value;
+    };
+
+    CONTROLS.onToggleFill = [this](bool isFill) {
+        this->toggleTool = isFill;
     };
 
 }
@@ -105,11 +111,19 @@ void SceneTextureSample::Input() {
     this->pointerY = GetMouseY();
     
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        this->isDraw = true;
+        if (toggleTool) { // Fill tool
+            this->isFill = true;
+        } else {
+            this->isPencil = true;
+        }
     }
 
     if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
-        this->isDraw = false;
+        if (toggleTool) {
+            this->isFill = false;
+        } else {
+            this->isPencil = false;
+        }
     }
 
     if (IsKeyPressed(KEY_F)) {
@@ -137,7 +151,7 @@ void SceneTextureSample::Input() {
 
 
 void SceneTextureSample::Update() {
-    if (this->isDraw) {
+    if (this->isPencil) {
         const int gridX = this->pointerX / SAMPLE_PIXEL_SCALE;
         const int gridY = this->pointerY / SAMPLE_PIXEL_SCALE;
 

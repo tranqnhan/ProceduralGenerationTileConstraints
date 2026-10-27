@@ -26,8 +26,10 @@ private:
     int currentColorId;
     int pointerX;
     int pointerY;
-    bool isDraw;
+    bool isPencil;
     bool isFill;
+
+    bool toggleTool;
 
     Cursor uiCursor;
 
