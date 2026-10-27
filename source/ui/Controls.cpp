@@ -1,20 +1,23 @@
-#include "raylib.h"
+
+#include "Controls.hpp"
+
+Controls CONTROLS;
+
+#ifdef PLATFORM_WASM
+
 #include "emscripten.h"
 
-static int backgroundColor = 0;
 
 extern "C" {
 
     EMSCRIPTEN_KEEPALIVE
-    void setBackgroundColor(int color)
+    void SelectColor(int color)
     {
-        backgroundColor = color;
-    }
-
-    EMSCRIPTEN_KEEPALIVE
-    void resetGame()
-    {
-        // Reset your game state here.
+        if (CONTROLS.onColorSelected) {
+            CONTROLS.onColorSelected(color);
+        }
     }
 
 }
+
+#endif

@@ -2,6 +2,7 @@
 
 #include <raylib.h>
 
+#include "ColorPallete.hpp"
 #include "Scene.hpp"
 #include "Cursor.hpp"
 
@@ -20,7 +21,7 @@ public:
     
 private:
     Texture2D sampleTexture;
-    Color colors[10];
+    Color colors[NUM_COLOR];
 
     int currentColorId;
     int pointerX;

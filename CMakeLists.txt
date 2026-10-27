@@ -46,6 +46,7 @@ target_sources(PGCS PRIVATE
     source/data/Ruleset.cpp
     source/data/Composite.cpp
     source/ui/Cursor.cpp
+    source/ui/Controls.cpp
     source/scene/SceneCoordinator.cpp
     source/scene/SceneSharedData.cpp
     source/scene/SceneGeneration.cpp
@@ -61,7 +62,9 @@ if(EMSCRIPTEN)
 
     target_include_directories(PGCS PUBLIC include library/include ${EMSCRIPTEN_PATH}/include)
 
-    target_sources(PGCS PRIVATE source/ui/Controls.cpp)
+    target_compile_definitions(PGCS PRIVATE
+        PLATFORM_WASM
+    )
 
     set_target_properties(PGCS PROPERTIES
         LINK_FLAGS "--preload-file ../assets"
@@ -69,8 +72,12 @@ if(EMSCRIPTEN)
 
     set(CMAKE_EXECUTABLE_SUFFIX ".js")
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPLATFORM_WEB -sUSE_PTHREADS=1 -fexceptions")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPLATFORM_WEB -sUSE_PTHREADS=1 -fexceptions")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPLATFORM_WEB -pthread -fexceptions")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPLATFORM_WEB -pthread -fexceptions")
 
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -sUSE_PTHREADS=1 -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY -sMODULARIZE=1 -sEXPORT_ES6=1 -sASSERTIONS=1 -sPTHREADS_DEBUG=1 -sPTHREAD_POOL_SIZE=2")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread -sALLOW_MEMORY_GROWTH=1 -sASYNCIFY -sMODULARIZE=1 -sEXPORT_ES6=1 -sASSERTIONS=1 -sPTHREADS_DEBUG=1 -sPTHREAD_POOL_SIZE=2")
+
+    target_link_options(PGCS PRIVATE
+        "-sEXPORTED_RUNTIME_METHODS=['ccall']"
+    )
 endif()

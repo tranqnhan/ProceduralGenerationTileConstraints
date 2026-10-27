@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <title>Procedural Generation Constraint Satisfaction</title>
+    <link rel="stylesheet" href="src/css/styles.css">
+
+</head>
+
+<body>
+
+    <div class="mainLayout">
+        
+        <canvas id="canvas"></canvas>
+
+        <div class="sideLayout">
+
+            <h2>Procedural Generation Tile Constraints</h2>
+
+            <div style="display:flex; flex-direction: column; align-items: center;">
+                <span>
+                    <a href="https://github.com/tranqnhan/ProceduralGenerationTileConstraints">Github</a> |        
+                    <a href="https://tranhqnhan.org/">Other Projects</a>
+                </span>
+            </div>
+            
+            <h3>Control Panel</h3>
+
+            <div style="display:flex; flex-direction: column; align-items: center;">
+                <div id="colorPalette">
+
+                    <div id="palette">
+                        {% for c in color_palette.colors %}
+                            <button onclick="onSwatchClick({{ loop.index0 }}, '{{ c }}')" class="swatch" style="background-color: {{ c }}" />
+                        {% endfor %}
+                    </div>
+
+                    <div id="selectedColor" />
+                </div>
+            </div>
+
+
+
+            <div>
+
+                <h3>References</h3>
+
+                <div>
+                    Paul Merrell. Model Synthesis. https://paulmerrell.org/model-synthesis/
+                </div>
+
+                <div>
+                    Maxim Gumin. Wave Function Collapse. https://github.com/mxgmn/WaveFunctionCollapse
+                </div>
+                
+                <div>
+                    Stephen Sherratt. https://www.gridbugs.org/wave-function-collapse/
+                </div>
+            </div>
+                
+
+        </div>
+
+    </div>
+
+
+    <script type="module" src="src/js/main.js"></script>
+
+</body>
+</html>

@@ -6,33 +6,26 @@
 #include "SceneCoordinator.hpp"
 #include "SceneSharedData.hpp"
 #include "ColorPallete.hpp"
+#include "Controls.hpp"
 
 SceneTextureSample::SceneTextureSample() {
     this->sampleTexture = LoadTextureFromImage(SceneSharedData::sampleImage);
 
-    constexpr int numColors = 10;
-
-    constexpr unsigned int colorHex[numColors] = {
-        COLOR_0,
-        COLOR_1,
-        COLOR_2,
-        COLOR_3,
-        COLOR_4,
-        COLOR_5,
-        COLOR_6,
-        COLOR_7,
-        COLOR_8,
-        COLOR_9,
-    };
-
-    for (int i = 0; i < numColors; ++i) {
-        this->colors[i] = GetColor(colorHex[i]);
+    for (int i = 0; i < NUM_COLOR; ++i) {
+        this->colors[i] = GetColor(COLOR_PALLETE[i]);
     }
 
     this->currentColorId = 0;
 
     this->isDraw = false;
     this->isFill = false;
+
+    CONTROLS.onColorSelected = [this](int value) {
+        if (value >= NUM_COLOR) value = NUM_COLOR - 1;
+        if (value < 0) value = 0;
+        
+        this->currentColorId = value;
+    };
 
     this->uiCursor.Init();
 }
@@ -129,7 +122,7 @@ void SceneTextureSample::Input() {
         case KEY_SEVEN: this->currentColorId = 7; break;
         case KEY_EIGHT: this->currentColorId = 8; break;
         case KEY_NINE: this->currentColorId = 9; break;
-        default: break;
+        default: ;
     }
 
     this->uiCursor.Input();
@@ -178,5 +171,5 @@ void SceneTextureSample::Render() {
 
 
 void SceneTextureSample::OnExit() {
-    
+    CONTROLS.onColorSelected = nullptr;
 }

@@ -4,3 +4,6 @@ build-web.sh
 .cache/
 archive/
 web-server.py
+.clangd
+docs/target/
+*.lock
