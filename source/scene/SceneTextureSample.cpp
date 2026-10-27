@@ -20,6 +20,9 @@ SceneTextureSample::SceneTextureSample() {
     this->isDraw = false;
     this->isFill = false;
 
+    this->uiCursor.Init();
+
+
     CONTROLS.onColorSelected = [this](int value) {
         if (value >= NUM_COLOR) value = NUM_COLOR - 1;
         if (value < 0) value = 0;
@@ -27,7 +30,6 @@ SceneTextureSample::SceneTextureSample() {
         this->currentColorId = value;
     };
 
-    this->uiCursor.Init();
 }
 
 
@@ -84,15 +86,20 @@ void SceneTextureSample::Fill() {
 
 
 void SceneTextureSample::OnEnter() {
-    
+    CONTROLS.onChangeScene = []() {
+        SceneCoordinator::ChangeScene(SceneId::Generation);
+    };
+
 }
 
 
 void SceneTextureSample::Input() {
+    #ifndef PLATFORM_WASM
     if (IsKeyPressed(KEY_ENTER)) {
         SceneCoordinator::ChangeScene(SceneId::Generation);
         return;
     }
+    #endif
 
     this->pointerX = GetMouseX();
     this->pointerY = GetMouseY();
@@ -171,5 +178,5 @@ void SceneTextureSample::Render() {
 
 
 void SceneTextureSample::OnExit() {
-    CONTROLS.onColorSelected = nullptr;
+    CONTROLS.onChangeScene = nullptr;
 }

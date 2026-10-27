@@ -101,3 +101,20 @@ a {
   border-radius: 5px;
   background-color: black;
 }
+
+
+.sceneButton {
+    padding: 12px 24px;
+    background: var(--color-black);
+    color: var(--color-white);
+    margin-bottom: calc(var(--sep-margin) + 5px);
+    outline: 2px solid var(--color-white);
+    outline-offset: -5px;
+    transition: background 0.2s ease, transform 0.15s ease;
+
+}
+
+.sceneButton:hover {
+    background: var(--color-red);
+    transform: scale(1.05);
+}

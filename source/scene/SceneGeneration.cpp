@@ -6,7 +6,7 @@
 #include "SceneCoordinator.hpp"
 #include "SceneSharedData.hpp"
 #include "SceneGeneration.hpp"
-
+#include "Controls.hpp"
 
 void SceneGeneration::OnEnter() {
     Processor sampleProcessor;
@@ -18,10 +18,15 @@ void SceneGeneration::OnEnter() {
 
     this->tileGenerator.Init(ruleset, CHUNK_WIDTH, CHUNK_HEIGHT, NUM_CHUNKS_WIDTH, NUM_CHUNKS_HEIGHT);
     this->tileGenerator.FullGenerateAsync();
+
+    CONTROLS.onChangeScene = []() {
+        SceneCoordinator::ChangeScene(SceneId::TextureSample);
+    };
 }
 
 
 void SceneGeneration::Input() {
+    #ifndef PLATFORM_WASM
     if (IsKeyDown(KEY_BACKSPACE)) {
         SceneCoordinator::ChangeScene(SceneId::TextureSample);
         return;
@@ -30,6 +35,7 @@ void SceneGeneration::Input() {
     if (IsKeyDown(KEY_SPACE)) {
         this->tileGenerator.Next();
     }
+    #endif
 }
 
 
@@ -45,4 +51,5 @@ void SceneGeneration::Render() {
 
 void SceneGeneration::OnExit() {
     this->tileGenerator.StopGenerate();
+    CONTROLS.onChangeScene = nullptr;
 }

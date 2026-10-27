@@ -18,6 +18,14 @@ extern "C" {
         }
     }
 
+    EMSCRIPTEN_KEEPALIVE
+    void ChangeScene()
+    {
+        if (CONTROLS.onChangeScene) {
+            CONTROLS.onChangeScene();
+        }
+    }
+
 }
 
 #endif
